@@ -1,0 +1,57 @@
+---
+description: Normes SEO — référencement naturel, indexation Google, données structurées
+alwaysApply: true
+---
+
+# Règle permanente — SEO / Référencement naturel
+
+Le référencement est une priorité absolue. Chaque page doit être prête pour Google Search Console dès le premier déploiement.
+
+## Obligations pour chaque page
+
+1. **`<SeoHead>`** obligatoire sur chaque page routée (`src/pages/*`), avec :
+   - `title` unique et descriptif (≤ 60 caractères idéal)
+   - `description` unique (≤ 155 caractères)
+   - `canonical` pointant vers l'URL propre
+   - `ogImage` (1200×630px minimum)
+   - `jsonLd` avec schéma approprié (`WebPage`, `Article`, `Product`, `FAQPage`, etc.)
+
+2. **Pas de `noindex`** sur les pages publiques — seulement sur les pages admin/auth.
+
+3. **Données structurées JSON-LD** : utiliser les helpers dans `src/components/seo/json-ld.tsx`. Ajouter le type de schéma pertinent pour chaque page.
+
+## HTML sémantique
+
+- Un seul `<h1>` par page (dans la section Hero ou en haut de page).
+- Hiérarchie `h1` → `h2` → `h3` stricte, jamais de saut.
+- Balises `<section>`, `<article>`, `<nav>`, `<header>`, `<footer>`, `<main>` correctement placées.
+- Attributs `aria-label` sur les `<nav>` multiples.
+- `alt` descriptif sur toutes les `<img>`.
+
+## Sitemap & robots
+
+- Chaque nouvelle route publique doit être ajoutée dans `scripts/generate-sitemap.ts` ET dans `src/lib/seo.ts` (`routes`).
+- `robots.txt` dans `public/` — ne jamais bloquer les pages publiques.
+- Le script `npm run sitemap` regénère le sitemap.
+
+## Performance (Core Web Vitals)
+
+- Images : formats modernes (WebP/AVIF), `loading="lazy"`, dimensions explicites.
+- Fonts : `preconnect` dans `index.html`, `font-display: swap`.
+- Pas de JS bloquant le rendu au-dessus du fold.
+- Garder le bundle initial sous contrôle (lazy-load les pages secondaires via `React.lazy`).
+
+## Pré-rendu
+
+- `vite-plugin-seo-prerender` génère le HTML statique au build pour chaque route listée dans `vite.config.ts`.
+- Vérifier que le HTML pré-rendu contient bien les balises `<title>`, `<meta description>`, et le JSON-LD.
+
+## Checklist SEO avant déploiement
+
+- [ ] `<SeoHead>` sur chaque page avec title + description + canonical + jsonLd
+- [ ] `sitemap.xml` contient toutes les routes publiques
+- [ ] `robots.txt` autorise le crawl et pointe vers le sitemap
+- [ ] HTML pré-rendu vérifié (build puis inspecter `dist/index.html`)
+- [ ] Open Graph vérifié (outil : https://www.opengraph.xyz/)
+- [ ] Données structurées validées (outil : https://search.google.com/test/rich-results)
+- [ ] Core Web Vitals acceptables (Lighthouse ≥ 90 en performance)

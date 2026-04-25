@@ -1,0 +1,32 @@
+---
+description: Standards UI/UX premium — composants shadcn, Tailwind, cohérence SaaS
+alwaysApply: true
+---
+
+# Règle permanente — UI premium
+
+Chaque composant doit être **beau par défaut**. Ne jamais générer d’UI fade, trop brute ou trop générique.
+
+## Priorités
+
+- **Base** : shadcn/ui (Radix Nova) pour les primitives ; étendre avec soin plutôt que réinventer.
+- **Style** : Tailwind utilitaire, classes intentionnelles ; éviter le bruit et les utilitaires redondants.
+- **Espacement** : généreux, rythmé (échelle cohérente 4/8/12/16/24+).
+- **Cohérence** : rayons (`rounded-*`), ombres (`shadow-*` / tokens CSS), contrastes et hiérarchie typographique alignés sur `src/index.css`.
+- **Responsive** : mobile d’abord ; vérifier états tactiles et zones de clic.
+- **Micro-interactions** : Framer Motion avec parcimonie (durées courtes, easing premium, pas d’excès).
+- **Architecture** : `components/ui` (primitives), `components/layout`, `components/sections`, `pages`, `layouts`.
+
+## Références
+
+- Qualité visuelle cible : **Linear**, **Vercel**, **Stripe**, **Framer**, **Raycast**.
+- Éviter : rendu type Bootstrap, dashboard admin “cheap”, cartes plates sans hiérarchie.
+
+## États
+
+- Toujours prévoir **hover**, **focus-visible**, **active** et **disabled** là où c’est pertinent.
+- Accessibilité : focus visible, `aria-*`, contrastes lisibles.
+
+## À faire
+
+- Lors de nouvelles features : réutiliser ou composer depuis `@/components/ui` avant d’ajouter des one-off visuels.
