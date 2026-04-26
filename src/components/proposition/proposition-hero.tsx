@@ -40,7 +40,7 @@ export function PropositionHero({
           className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"
         />
 
-        <div className="relative mx-auto flex max-w-5xl items-center justify-between gap-6 px-4 py-6 sm:px-8 sm:py-7">
+        <div className="relative mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-4 px-4 py-6 sm:px-8 sm:py-7">
           <div className="flex items-center gap-4 sm:gap-5">
             <BrandLogo brand={b} className="h-10 w-auto sm:h-12" />
             {clientLogoUrl ? (
