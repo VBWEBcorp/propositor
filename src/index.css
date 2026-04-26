@@ -283,7 +283,7 @@
   bottom: 0.35rem;
   width: 2px;
   border-radius: 1px;
-  background: var(--heading);
+  background: var(--primary);
 }
 .prose-vbweb h2:first-child {
   margin-top: 0;

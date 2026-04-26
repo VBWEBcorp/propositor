@@ -24,7 +24,7 @@ export function Markdown({ children }: { children: string }) {
         ),
         h2: (props) => (
           <h2
-            className="relative mb-6 mt-14 pl-4 font-display text-[1.8rem] font-bold tracking-tight text-heading first:mt-0 sm:text-[2rem] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-full before:bg-heading"
+            className="relative mb-6 mt-14 pl-4 font-display text-[1.8rem] font-bold tracking-tight text-heading first:mt-0 sm:text-[2rem] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-full before:bg-primary"
             {...props}
           />
         ),
