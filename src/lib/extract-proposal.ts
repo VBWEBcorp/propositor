@@ -1,7 +1,9 @@
 import { BRANDS, type BrandId, type DocType } from '@/lib/brands'
 
 const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions'
-const DEEPSEEK_MODEL = 'deepseek-v4-flash'
+// V4 Pro : plus intelligent que Flash pour les tâches de structuration éditoriale
+// (détection de tableaux, suivi d'instructions complexes). ~10-20s au lieu de 5-10s.
+const DEEPSEEK_MODEL = 'deepseek-v4-pro'
 
 const BASE_RULES = `RÈGLES STRICTES :
 1. Tu NE reformules PAS, tu organises les mots tels quels.
