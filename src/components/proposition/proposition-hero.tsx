@@ -83,7 +83,7 @@ export function PropositionHero({
             {baseline || `Document pour ${client}`}
             <br />
             <span className="text-foreground/55">pour </span>
-            <span className="text-primary">{client}</span>
+            <span className="text-heading">{client}</span>
           </h1>
           <div className="mt-6 h-[2px] w-12 rounded-full bg-primary" />
         </div>

@@ -111,6 +111,16 @@
   --shadow-md: 0 8px 24px oklch(0.2 0.02 240 / 0.08);
   --shadow-lg: 0 24px 48px oklch(0.2 0.02 240 / 0.1);
   --glow: 0 0 80px oklch(0.65 0.13 235 / 0.25);
+
+  /* Couleur de titre — par défaut = primary (cyan VBWEB).
+   * Pour VBWEB on l'override en bleu foncé pour un rendu plus pro,
+   * les puces/traits/badges restent en cyan (--primary). */
+  --heading: var(--primary);
+}
+
+/* VBWEB : titres en bleu foncé du site, puces/accents en cyan clair */
+[data-brand='vbweb'] {
+  --heading: #1F344F;
 }
 
 /* Override des couleurs primary/marine en fonction de la marque (data-brand sur le shell) */
@@ -124,6 +134,7 @@
   --accent-foreground: oklch(0.32 0.1 60);
   --chart-1: oklch(0.74 0.16 60);
   --chart-4: oklch(0.25 0.05 65);
+  --heading: var(--primary);
 }
 [data-brand='ouibo'] {
   --primary: oklch(0.65 0.22 305);
@@ -135,6 +146,7 @@
   --accent-foreground: oklch(0.32 0.12 305);
   --chart-1: oklch(0.65 0.22 305);
   --chart-4: oklch(0.24 0.07 295);
+  --heading: var(--primary);
 }
 
 .dark {
@@ -194,6 +206,13 @@
     font-family: var(--font-display);
   }
 
+  .text-heading {
+    color: var(--heading);
+  }
+  .bg-heading {
+    background-color: var(--heading);
+  }
+
   .animate-marquee-left {
     animation: marquee-left 45s linear infinite;
   }
@@ -242,7 +261,7 @@
   font-size: 1.875rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 1.5rem;
 }
 .prose-vbweb h2 {
@@ -250,7 +269,7 @@
   font-size: 1.8rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--primary);
+  color: var(--heading);
   margin-top: 3.5rem;
   margin-bottom: 1.5rem;
   position: relative;
@@ -264,7 +283,7 @@
   bottom: 0.35rem;
   width: 2px;
   border-radius: 1px;
-  background: var(--primary);
+  background: var(--heading);
 }
 .prose-vbweb h2:first-child {
   margin-top: 0;
