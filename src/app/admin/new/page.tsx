@@ -4,7 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check, Eye, Loader2, Sparkles } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  Eye,
+  ImagePlus,
+  Loader2,
+  Sparkles,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 
 import { PreviewModal } from '@/components/admin/preview-modal'
 import { BrandLogo } from '@/components/proposition/brand-logo'
@@ -31,6 +40,33 @@ export default function NewDocPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [clientLogoUrl, setClientLogoUrl] = useState<string>('')
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+
+  async function handleLogoUpload(file: File) {
+    setUploadingLogo(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('authToken')
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error((j as { error?: string }).error ?? 'Erreur upload')
+      }
+      const { url } = (await res.json()) as { url: string }
+      setClientLogoUrl(url)
+    } catch (e) {
+      setError(e instanceof Error ? `Logo : ${e.message}` : 'Erreur upload logo')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
 
   async function generate() {
     setError(null)
@@ -101,7 +137,7 @@ export default function NewDocPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(ai),
+        body: JSON.stringify({ ...ai, clientLogoUrl }),
       })
       if (!dbRes.ok) {
         const j = await dbRes.json().catch(() => ({}))
@@ -293,10 +329,89 @@ export default function NewDocPage() {
           </section>
 
           {/* Étape 3 : contenu */}
+          {/* Étape 2.5 : logo client (optionnel) */}
+          <section className="mb-7">
+            <div className="mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                3. Logo du client (optionnel)
+              </p>
+              <h2 className="mt-1 font-display text-base font-semibold text-foreground">
+                Affiché à côté de ton logo dans le hero
+              </h2>
+            </div>
+
+            {clientLogoUrl ? (
+              <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={clientLogoUrl}
+                  alt="Logo client"
+                  className="h-12 w-auto max-w-[180px] rounded object-contain"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    Logo prêt
+                  </p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {clientLogoUrl}
+                  </p>
+                </div>
+                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 bg-background px-3 text-xs font-medium text-foreground/80 hover:bg-muted">
+                  <Upload className="size-3.5" />
+                  Changer
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                    className="hidden"
+                    disabled={uploadingLogo}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) handleLogoUpload(f)
+                      e.currentTarget.value = ''
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setClientLogoUrl('')}
+                  className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-3.5" />
+                  Retirer
+                </button>
+              </div>
+            ) : (
+              <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-card px-3 py-5 text-sm font-medium text-foreground/80 transition-colors hover:border-primary/50 hover:bg-primary/[0.04]">
+                {uploadingLogo ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Upload en cours…
+                  </>
+                ) : (
+                  <>
+                    <ImagePlus className="size-4" />
+                    Ajouter le logo du client (PNG, JPG, SVG, WEBP)
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                  className="hidden"
+                  disabled={uploadingLogo}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) handleLogoUpload(f)
+                    e.currentTarget.value = ''
+                  }}
+                />
+              </label>
+            )}
+          </section>
+
           <section className="mb-6">
             <div className="mb-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                3. Contenu
+                4. Contenu
               </p>
               <h2 className="mt-1 font-display text-base font-semibold text-foreground">
                 Colle tes notes / la conversation

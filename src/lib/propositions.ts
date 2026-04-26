@@ -106,7 +106,19 @@ Afin d'assurer la stabilité, la sécurité et la progression de la plateforme d
 - Création de contenu (3 articles de blog produits mensuellement pour remonter dans les résultats Google)
 - Amélioration du positionnement Google continu, ajustement de la stratégie de mots-clés en fonction des résultats
 
-Nous sommes disponibles pour ajuster le périmètre selon vos priorités afin de démarrer avec une plateforme simple et efficace, puis la faire évoluer progressivement dans le temps.`,
+Nous sommes disponibles pour ajuster le périmètre selon vos priorités afin de démarrer avec une plateforme simple et efficace, puis la faire évoluer progressivement dans le temps.
+
+## Récap tarifaire
+
+| Lot | Prestation | Montant |
+| --- | --- | --- |
+| A1 | Site web moderne sur-mesure | **1 000 € HT** |
+| A2 | Espace participant sécurisé | **700 € HT** |
+| A3 | Espace administrateur | **700 € HT** |
+| D1 | Maintenance évolutive (mensuel) | **120 € HT / mois** |
+| D2 | Référencement Google SEO (mensuel) | **250 € HT / mois** |
+| **Total socle (A1+A2+A3)** |  | **2 400 € HT** |
+| **Récurrent (D1+D2)** |  | **370 € HT / mois** |`,
 }
 
 async function ensureSeed() {
