@@ -76,6 +76,20 @@ export function PropositionHero({
       {/* Objet de la proposition */}
       <header className="relative bg-background">
         <div className="mx-auto max-w-5xl px-4 pt-12 sm:px-8 sm:pt-16">
+          {b.portraits && b.portraits.length > 0 ? (
+            <div className="mb-5 flex -space-x-2">
+              {b.portraits.map((src, i) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  key={src}
+                  src={src}
+                  alt={`Portrait ${i + 1}`}
+                  className="size-11 rounded-full object-cover shadow-sm ring-2 ring-background sm:size-12"
+                  style={{ zIndex: b.portraits!.length - i }}
+                />
+              ))}
+            </div>
+          ) : null}
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
             Objet du document
           </p>
