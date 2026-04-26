@@ -227,16 +227,41 @@ export function PropositionEditor({
       const footerProbe = await html2canvas(footerEl, captureOpts)
       const footerH = (footerProbe.height * pageWidth) / footerProbe.width
 
-      // Pré-capture de chaque bloc → image + hauteur en mm
-      const blockData: Array<{ img: string; h: number; isHeading: boolean }> = []
+      // Pré-capture de chaque bloc → image + hauteur en mm + tagName pour spacing
+      type BlockMeta = {
+        img: string
+        h: number
+        tagName: string
+        isHeading: boolean
+      }
+      const blockData: BlockMeta[] = []
       for (const block of blocks) {
         const c = await html2canvas(block, captureOpts)
         const h = (c.height * contentWidth) / c.width
         blockData.push({
           img: c.toDataURL('image/jpeg', 0.95),
           h,
+          tagName: block.tagName,
           isHeading: /^H[1-6]$/.test(block.tagName),
         })
+      }
+
+      // Espace AVANT un bloc selon son tag (style Google Doc : sections aérées)
+      const spaceBefore = (tagName: string, prevTagName: string | null): number => {
+        if (prevTagName === null) return 0 // 1er bloc d'une page
+        // Avant un titre principal : grosse aération
+        if (tagName === 'H1' || tagName === 'H2') return 8
+        // Avant un sous-titre : aération moyenne
+        if (tagName === 'H3') return 5
+        // Après un titre : tassé (le contenu suit immédiatement)
+        if (prevTagName === 'H1' || prevTagName === 'H2') return 1
+        if (prevTagName === 'H3') return 1
+        // Avant un tableau / blockquote : un peu d'air
+        if (tagName === 'TABLE' || tagName === 'BLOCKQUOTE') return 4
+        // Avant une liste : petit air
+        if (tagName === 'UL' || tagName === 'OL') return 2.5
+        // Standard entre paragraphes
+        return 2
       }
 
       // 3. Layout virtuel pour compter le nombre total de pages
@@ -246,23 +271,30 @@ export function PropositionEditor({
 
       let virtualPages = 1
       let virtualY = topPage1
+      let virtualPrevTag: string | null = null
       for (let i = 0; i < blockData.length; i++) {
         const cur = blockData[i]
         const next = cur.isHeading && i + 1 < blockData.length ? blockData[i + 1] : null
-        const reserve = cur.h + (next ? next.h + 2 : 0)
+        const beforeCur = spaceBefore(cur.tagName, virtualPrevTag)
+        const beforeNext = next ? spaceBefore(next.tagName, cur.tagName) : 0
+        const reserve = beforeCur + cur.h + (next ? beforeNext + next.h : 0)
 
         if (virtualY + reserve > bottomLimit) {
           virtualPages++
           virtualY = topOtherPages
+          virtualPrevTag = null
         }
-        virtualY += cur.h + 2
+        virtualY += spaceBefore(cur.tagName, virtualPrevTag) + cur.h
+        virtualPrevTag = cur.tagName
         if (next) {
-          if (virtualY + next.h > bottomLimit) {
+          if (virtualY + spaceBefore(next.tagName, virtualPrevTag) + next.h > bottomLimit) {
             virtualPages++
             virtualY = topOtherPages
+            virtualPrevTag = null
           }
-          virtualY += next.h + 2
-          i++ // skip pré-réservé
+          virtualY += spaceBefore(next.tagName, virtualPrevTag) + next.h
+          virtualPrevTag = next.tagName
+          i++
         }
       }
 
@@ -291,6 +323,7 @@ export function PropositionEditor({
       pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerH)
       pdf.addImage(footerImgs[0], 'JPEG', 0, pageHeight - footerH, pageWidth, footerH)
       let cursorY = topPage1
+      let prevTag: string | null = null
 
       function nextPage() {
         pdf.addPage()
@@ -305,26 +338,38 @@ export function PropositionEditor({
           footerH
         )
         cursorY = topOtherPages
+        prevTag = null
       }
 
       for (let i = 0; i < blockData.length; i++) {
         const cur = blockData[i]
         const next = cur.isHeading && i + 1 < blockData.length ? blockData[i + 1] : null
 
-        // Test orphelin : le titre + son suivant ne rentrent pas → on saute
-        if (cursorY + cur.h + (next ? next.h + 2 : 0) > bottomLimit) {
+        // Réserve d'espace : avant cur + cur.h (+ avant next + next.h si orphelin protégé)
+        const beforeCur = spaceBefore(cur.tagName, prevTag)
+        const reserve =
+          beforeCur +
+          cur.h +
+          (next ? spaceBefore(next.tagName, cur.tagName) + next.h : 0)
+
+        if (cursorY + reserve > bottomLimit) {
           nextPage()
         }
 
+        cursorY += spaceBefore(cur.tagName, prevTag)
         pdf.addImage(cur.img, 'JPEG', sideMargin, cursorY, contentWidth, cur.h)
-        cursorY += cur.h + 2
+        cursorY += cur.h
+        prevTag = cur.tagName
 
         if (next) {
-          if (cursorY + next.h > bottomLimit) {
+          const beforeNext = spaceBefore(next.tagName, prevTag)
+          if (cursorY + beforeNext + next.h > bottomLimit) {
             nextPage()
           }
+          cursorY += spaceBefore(next.tagName, prevTag)
           pdf.addImage(next.img, 'JPEG', sideMargin, cursorY, contentWidth, next.h)
-          cursorY += next.h + 2
+          cursorY += next.h
+          prevTag = next.tagName
           i++
         }
       }

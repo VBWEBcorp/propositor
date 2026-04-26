@@ -128,13 +128,19 @@ ${BASE_RULES}`.replace('{TODAY}', today)
     throw new Error('DeepSeek n\'a pas renvoyé de JSON valide')
   }
 
-  const content = String(parsed.content ?? '').trim()
-  if (!content) throw new Error('L\'IA n\'a pas produit de contenu utilisable')
+  const rawContent = String(parsed.content ?? '').trim()
+  if (!rawContent) throw new Error('L\'IA n\'a pas produit de contenu utilisable')
 
   return {
-    client: String(parsed.client ?? 'Client').trim() || 'Client',
-    baseline: String(parsed.baseline ?? '').trim(),
+    client: stripDashes(String(parsed.client ?? 'Client').trim() || 'Client'),
+    baseline: stripDashes(String(parsed.baseline ?? '').trim()),
     date: String(parsed.date ?? today).trim() || today,
-    content,
+    content: stripDashes(rawContent),
   }
+}
+
+/** Remplace les em-dashes (—) et en-dashes (–) par un tiret simple (-)
+ * pour éviter le rendu "écrit par IA". Conserve les espaces autour. */
+export function stripDashes(text: string): string {
+  return text.replace(/[—–]/g, '-')
 }

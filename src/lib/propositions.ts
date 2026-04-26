@@ -147,13 +147,30 @@ function migrateMarkdownHeadings(content: string): string {
 }
 
 async function migrateAllCapsTitles() {
-  const docs = await Proposition.find({}, { _id: 1, content: 1 }).lean()
+  const docs = await Proposition.find(
+    {},
+    { _id: 1, content: 1, baseline: 1, client: 1 }
+  ).lean()
   for (const d of docs) {
     const id = (d as { _id: unknown })._id
-    const original = (d as { content?: string }).content ?? ''
-    const migrated = migrateMarkdownHeadings(original)
-    if (migrated !== original) {
-      await Proposition.updateOne({ _id: id }, { $set: { content: migrated } })
+    const content = (d as { content?: string }).content ?? ''
+    const baseline = (d as { baseline?: string }).baseline ?? ''
+    const client = (d as { client?: string }).client ?? ''
+
+    // 1. Sentence case sur les titres MAJUSCULES
+    const fixedHeadings = migrateMarkdownHeadings(content)
+    // 2. Suppression des em-dashes/en-dashes (—, –) → tiret simple (-)
+    const fixedDashes = fixedHeadings.replace(/[—–]/g, '-')
+    const fixedBaseline = baseline.replace(/[—–]/g, '-')
+    const fixedClient = client.replace(/[—–]/g, '-')
+
+    const update: Record<string, string> = {}
+    if (fixedDashes !== content) update.content = fixedDashes
+    if (fixedBaseline !== baseline) update.baseline = fixedBaseline
+    if (fixedClient !== client) update.client = fixedClient
+
+    if (Object.keys(update).length > 0) {
+      await Proposition.updateOne({ _id: id }, { $set: update })
     }
   }
 }
