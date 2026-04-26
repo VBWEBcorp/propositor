@@ -43,6 +43,14 @@ export function PropositionShell({
         <div className="relative mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-6 sm:px-8 sm:py-7">
           <div className="flex items-center gap-3">
             <BrandLogo brand={b} className="h-10 w-auto opacity-95 sm:h-12" />
+            {b.id === 'vbweb' && b.portraitUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={b.portraitUrl}
+                alt="Victor Beasse"
+                className="size-10 rounded-full object-cover ring-2 ring-white/25 sm:size-12"
+              />
+            ) : null}
             <span aria-hidden className="hidden h-8 w-px bg-white/15 sm:inline-block" />
             <p className="hidden text-[11px] tracking-wide text-brand-marine-foreground/75 sm:block">
               &copy; {new Date().getFullYear()} {b.name}

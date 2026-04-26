@@ -15,6 +15,8 @@ export type Brand = {
   email: string
   /** Couleur du texte sur fond marine */
   marineForeground: string
+  /** Portrait optionnel affiché dans le footer (rond, à droite du logo) */
+  portraitUrl?: string | null
 }
 
 export const BRANDS: Record<BrandId, Brand> = {
@@ -27,6 +29,7 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/C3ZJ3z59/VBWEB-LOGO-BLEU-BLANC.png',
     email: 'contact@vbweb.fr',
+    portraitUrl: 'https://i.ibb.co/ZpkH8MbS/image.webp',
   },
   bimi: {
     id: 'bimi',

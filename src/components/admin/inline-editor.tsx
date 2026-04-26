@@ -15,10 +15,8 @@ const turndown = new TurndownService({
   emDelimiter: '*',
 })
 
-// turndown perd parfois les tableaux — on le complète :
-turndown.use(function (service: TurndownService) {
-  service.keep(['table', 'thead', 'tbody', 'tr', 'th', 'td'] as unknown as string[])
-})
+// turndown perd parfois les tableaux — on les garde tels quels en HTML
+turndown.keep(['table', 'thead', 'tbody', 'tr', 'th', 'td'] as Array<keyof HTMLElementTagNameMap>)
 
 export function markdownToHtml(md: string): string {
   return marked.parse(md, { async: false }) as string
