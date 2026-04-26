@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Timeout des serverless functions
+# Free plan : max 10s — on est limités.
+# Pro plan ($19/mois) : max 26s — suffisant pour DeepSeek (~10-15s en moyenne).
+# Au-delà : Background Functions (jusqu'à 15 min) mais asynchrone.
+[functions]
+  node_bundler = "esbuild"
+
+# Override timeout spécifique pour la route d'extraction IA (DeepSeek)
+[functions."api/propositions/extract"]
+  timeout = 26
