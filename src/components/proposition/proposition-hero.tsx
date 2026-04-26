@@ -33,7 +33,7 @@ export function PropositionHero({
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[linear-gradient(110deg,transparent_55%,rgba(255,255,255,0.04)_55%,rgba(255,255,255,0.04)_57%,transparent_57%)]"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_64%,rgba(255,255,255,0.06)_64%,rgba(255,255,255,0.06)_65.5%,transparent_65.5%)]"
         />
         <div
           aria-hidden
@@ -57,20 +57,17 @@ export function PropositionHero({
           </div>
 
           {(number || date) ? (
-            <div className="flex items-center gap-4 sm:gap-5">
-              <span aria-hidden className="h-10 w-px bg-white/25 sm:h-12" />
-              <div className="flex flex-col items-end gap-0.5 text-right">
-                {number ? (
-                  <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
-                    {number}
-                  </p>
-                ) : null}
-                {date ? (
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-brand-marine-foreground/70 sm:text-xs">
-                    Date de création · {date}
-                  </p>
-                ) : null}
-              </div>
+            <div className="flex flex-col items-end gap-0.5 text-right">
+              {number ? (
+                <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
+                  {number}
+                </p>
+              ) : null}
+              {date ? (
+                <p className="text-[11px] uppercase tracking-[0.18em] text-brand-marine-foreground/70 sm:text-xs">
+                  Date de création · {date}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>
