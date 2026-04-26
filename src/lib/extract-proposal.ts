@@ -6,12 +6,29 @@ const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 const BASE_RULES = `RÈGLES STRICTES :
 1. Tu NE reformules PAS, tu organises les mots tels quels.
 2. AUCUN tiret long "—" ni "–" : remplace par virgule, deux-points ou point.
-3. TABLEAUX MARKDOWN — c'est important pour la lisibilité :
-   - DÈS QUE tu vois 3 items du même type avec un montant ou un chiffre (ex: 3+ lots avec prix, 3+ options chiffrées, 3+ KPI, 3+ concurrents comparés) → tu DOIS faire un tableau.
-   - Récap tarifaire en fin de proposition → toujours un tableau si il y a plusieurs prix.
-   - Comparaison (avant/après, plans, concurrents) → tableau.
-   - Pas de tableau pour : un paragraphe narratif, une sous-liste "Inclut :" qui détaille un seul lot, moins de 3 entrées.
-   Quand tu hésites entre liste à puces et tableau, et que les items ont une structure répétée (Label + Prix + ...) → choisis le tableau.
+
+3. TABLEAUX MARKDOWN — règle critique :
+Quand le texte source contient des données structurées (catégorie + chiffre, label + prix, etc.) tu DOIS les sortir en tableau markdown. C'est non-négociable.
+
+Cas obligatoires :
+- 3+ items du même type avec un montant/chiffre (lots avec prix, options chiffrées, KPI, concurrents comparés)
+- Récap tarifaire si plusieurs prix dans la proposition
+- Volumes de recherche / positions Google / scores
+- Comparaison (avant/après, plans)
+
+DÉTECTION SPÉCIALE : si le texte source contient un blob "collé" type "CatégorieValeur1Catégorie2Valeur2..." (un tableau qui a perdu sa mise en page au copier-coller), tu DOIS le détecter et le restructurer en tableau markdown propre.
+
+Exemple concret :
+Texte source : "CatégorieRecherches mensuellesRestaurant Lamai~5 500Gym Koh Samui~5 800Tennis Koh Samui~700TOTAL~13 000"
+Sortie attendue :
+| Catégorie | Recherches mensuelles |
+| --- | --- |
+| Restaurant Lamai | ~5 500 |
+| Gym Koh Samui | ~5 800 |
+| Tennis Koh Samui | ~700 |
+| **Total** | **~13 000** |
+
+Pas de tableau pour : paragraphe narratif, sous-liste "Inclut :" qui détaille un seul lot, < 3 entrées.
 
 Sortie : JSON strict, aucun texte autour ni balise \`\`\`json.
 {
