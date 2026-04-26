@@ -3,58 +3,39 @@ import { BRANDS, type BrandId, type DocType } from '@/lib/brands'
 const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions'
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 
-const BASE_RULES = `RÈGLE ABSOLUE : tu NE REFORMULES PAS. Tu NE PARAPHRASES PAS. Tu N'INVENTES RIEN. Tu prends les phrases telles que l'utilisateur les a écrites, tu te contentes de les organiser dans le bon ordre et de les structurer en markdown.
+const BASE_RULES = `RÈGLES STRICTES :
+1. Tu NE reformules PAS, tu organises les mots tels quels.
+2. AUCUN tiret long "—" ni "–" : remplace par virgule, deux-points ou point.
+3. TABLEAUX MARKDOWN — c'est important pour la lisibilité :
+   - DÈS QUE tu vois 3 items du même type avec un montant ou un chiffre (ex: 3+ lots avec prix, 3+ options chiffrées, 3+ KPI, 3+ concurrents comparés) → tu DOIS faire un tableau.
+   - Récap tarifaire en fin de proposition → toujours un tableau si il y a plusieurs prix.
+   - Comparaison (avant/après, plans, concurrents) → tableau.
+   - Pas de tableau pour : un paragraphe narratif, une sous-liste "Inclut :" qui détaille un seul lot, moins de 3 entrées.
+   Quand tu hésites entre liste à puces et tableau, et que les items ont une structure répétée (Label + Prix + ...) → choisis le tableau.
 
-Si l'utilisateur a écrit "Notre objectif serait de démarrer début juin", tu écris exactement "Notre objectif serait de démarrer début juin" dans le content. Pas "L'objectif est de commencer en juin", pas "Démarrage prévu juin", non : tu copies-colles la phrase originale.
-
-INTERDICTION ABSOLUE DES TIRETS LONGS : tu n'utilises JAMAIS les caractères "—" (em-dash) ni "–" (en-dash). Ces tirets sont la signature visuelle des textes générés par IA. Tu utilises à la place : virgules, deux-points, parenthèses, phrases plus courtes séparées par un point, ou tiret simple "-" UNIQUEMENT dans les listes markdown ou pour les flèches "→". Si l'utilisateur a écrit "—" dans son texte, tu le remplaces par une virgule, un deux-points ou tu coupes la phrase.
-
-EMPLOI DES TABLEAUX MARKDOWN — JUGEMENT ÉDITORIAL :
-Tu juges toi-même si un tableau apporte de la valeur. Utilise un tableau UNIQUEMENT quand il rend l'information visiblement plus claire que sa version textuelle/listée. Cas typiques où un tableau aide :
-- Récap tarifaire compact (plusieurs prestations courtes avec montants)
-- Liste d'options / fonctionnalités optionnelles avec prix unitaires
-- Comparaison entre plusieurs choses (avant/après, deux plans, concurrents)
-- Tableau de positions Google / KPI / chiffres alignés
-
-Cas où un tableau N'aide PAS et serait à éviter :
-- Quand chaque ligne a besoin d'être étoffée avec sa propre sous-liste "Inclut :"
-- Quand il y a moins de 3 entrées (une liste à puces ou un paragraphe suffit)
-- Quand le contenu est narratif / explicatif
-
-Tu décides au cas par cas selon ce que l'utilisateur t'a fourni. Si tu n'es pas sûr, garde une liste à puces classique.
-
-Sortie OBLIGATOIRE — JSON strict, AUCUN texte autour, AUCUNE balise \`\`\`json :
-
+Sortie : JSON strict, aucun texte autour ni balise \`\`\`json.
 {
-  "client": "Nom du client tel qu'écrit dans le texte",
-  "baseline": "Objet court (max 80 caractères, phrase nominale)",
-  "date": "Date au format JJ/MM/AAAA. Si non précisée, mets {TODAY}.",
-  "content": "Markdown complet, voir règles selon type de document"
+  "client": "Nom du client",
+  "baseline": "Objet court (≤80 caractères, phrase nominale)",
+  "date": "JJ/MM/AAAA (sinon {TODAY})",
+  "content": "Markdown du document"
 }
 `
 
-const PROPOSITION_RULES = `Tu rédiges une PROPOSITION COMMERCIALE pour {BRAND_NAME}. Format markdown du content :
-- ## pour les sections principales, en SENTENCE CASE (première lettre majuscule, reste minuscule). Exemples : "Introduction", "A. Fonctionnalités socle (recommandé)", "B. Fonctionnalités optionnelles", "C. Accompagnement mensuel". JAMAIS tout en MAJUSCULES.
-- ### pour les sous-sections / lots, en sentence case (ex: "Lot A1 : Site web moderne sur-mesure → 1000€ HT")
-- Listes à puces avec - pour les fonctionnalités/inclusions
-- **gras** pour les montants et mots-clés
-- Citations > pour les paroles client
-- Flèche → pour les prix dans les titres de lots
-- AUCUN # H1 (le hero affiche déjà le client)
-
-Pour la baseline : un objet nominal court (ex: "Plateforme digitale de formation", "Refonte de site et SEO local").
+const PROPOSITION_RULES = `Tu rédiges une PROPOSITION pour {BRAND_NAME}.
+- ## pour sections principales (sentence case, ex: "A. Fonctionnalités socle"). Jamais MAJUSCULES.
+- ### pour sous-sections / lots (ex: "Lot A1 : Site web → 1000€ HT")
+- Listes à puces "-", **gras** pour les montants, > pour citations, → pour les prix.
+- Pas de # H1.
+Baseline = objet nominal court (ex: "Plateforme digitale de formation").
 `
 
-const SYNTHESE_RULES = `Tu rédiges une SYNTHÈSE SEO / AUDIT pour {BRAND_NAME}. Format markdown du content :
-- ## pour les sections principales, en SENTENCE CASE (première lettre majuscule, reste minuscule). Exemples : "Synthèse exécutive", "État des lieux", "Opportunités", "Recommandations", "Plan d'action". JAMAIS tout en MAJUSCULES.
-- ### pour les sous-sections en sentence case (axes spécifiques, KPI, étapes du plan).
-- Listes à puces pour les constats, opportunités, recommandations détaillées.
-- **gras** pour les chiffres-clés (positions Google, scores, %, volumes de recherche).
-- Citations > pour les remontées clientes ou citations d'écran.
-- Tableaux quand ça aide vraiment la lisibilité (positions/keywords, comparaison concurrent, KPI before/after, planning d'actions). Voir règles d'emploi des tableaux ci-dessous.
-- AUCUN # H1.
-
-Pour la baseline : un objet nominal court (ex: "Audit SEO et plan d'action 2026", "Synthèse de positionnement Google", "Bilan SEO trimestriel").
+const SYNTHESE_RULES = `Tu rédiges une SYNTHÈSE SEO pour {BRAND_NAME}.
+- ## pour sections principales en sentence case (ex: "État des lieux", "Plan d'action"). Jamais MAJUSCULES.
+- ### pour sous-sections en sentence case.
+- Listes à puces pour constats, **gras** pour chiffres-clés, > pour citations.
+- Pas de # H1.
+Baseline = objet nominal court (ex: "Audit SEO et plan d'action 2026").
 `
 
 export type ExtractedProposal = {
@@ -93,22 +74,40 @@ ${docRules}
 
 ${BASE_RULES}`.replace('{TODAY}', today)
 
-  const res = await fetch(DEEPSEEK_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: DEEPSEEK_MODEL,
-      response_format: { type: 'json_object' },
-      temperature: 0.1,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: conversation },
-      ],
-    }),
-  })
+  // Abort après 45s pour laisser le temps à Netlify Edge de répondre proprement (timeout 50s)
+  const ctrl = new AbortController()
+  const abortTimer = setTimeout(() => ctrl.abort(), 45_000)
+
+  let res: Response
+  try {
+    res = await fetch(DEEPSEEK_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        model: DEEPSEEK_MODEL,
+        response_format: { type: 'json_object' },
+        temperature: 0, // déterministe + plus rapide
+        max_tokens: 4096, // limite pour éviter une réponse interminable
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: conversation },
+        ],
+      }),
+    })
+  } catch (e) {
+    if ((e as { name?: string })?.name === 'AbortError') {
+      throw new Error(
+        'DeepSeek a mis plus de 45 secondes à répondre. Réessaie ou réduis le texte collé (~50% plus court).'
+      )
+    }
+    throw e
+  } finally {
+    clearTimeout(abortTimer)
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
