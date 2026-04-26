@@ -15,8 +15,9 @@ export type Brand = {
   email: string
   /** Couleur du texte sur fond marine */
   marineForeground: string
-  /** Portrait optionnel affiché dans le footer (rond, à droite du logo) */
-  portraitUrl?: string | null
+  /** Portraits optionnels affichés dans le footer (ronds, à droite du logo).
+   * 1 seule photo = rond simple. Plusieurs = ronds en stack avec léger overlap. */
+  portraits?: string[]
 }
 
 export const BRANDS: Record<BrandId, Brand> = {
@@ -29,7 +30,7 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/C3ZJ3z59/VBWEB-LOGO-BLEU-BLANC.png',
     email: 'contact@vbweb.fr',
-    portraitUrl: 'https://i.ibb.co/ZpkH8MbS/image.webp',
+    portraits: ['https://i.ibb.co/ZpkH8MbS/image.webp'],
   },
   bimi: {
     id: 'bimi',
@@ -40,6 +41,7 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/DDnkv6CH/BIMI-png.png',
     email: 'contact@bimi.fr',
+    // pas de photos
   },
   ouibo: {
     id: 'ouibo',
@@ -50,6 +52,11 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/Y408rXy2/Logo-OUIBO-removebg-preview.png',
     email: 'contact@ouibo.fr',
+    portraits: [
+      'https://i.ibb.co/B55PQmP0/Valentin.jpg',
+      'https://i.ibb.co/23zMSVBF/Sarah.jpg',
+      'https://i.ibb.co/1fRDj4NP/Victor.jpg',
+    ],
   },
 }
 
