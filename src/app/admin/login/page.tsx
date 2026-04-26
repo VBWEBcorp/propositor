@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Lock, Mail, Shield } from 'lucide-react'
+import { Lock, Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +17,6 @@ import {
 } from '@/components/ui/card'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,19 +31,19 @@ export default function AdminLoginPage() {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ password }),
       })
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Identifiants invalides')
+        throw new Error(data.error || 'Mot de passe incorrect')
       }
 
       const data = await response.json()
       localStorage.setItem('authToken', data.token)
       localStorage.setItem('authUser', JSON.stringify(data.user))
 
-      router.push('/admin/dashboard')
+      router.push('/admin')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion')
     } finally {
@@ -54,64 +52,57 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 relative"
-      style={{
-        backgroundImage: 'url(https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 p-4">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_50%_30%,oklch(0.55_0.2_285/0.35),transparent_70%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(0,0,0,0.6))]"
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md relative z-10"
+        className="relative z-10 w-full max-w-md"
       >
-        <Card className="border-white/10 bg-card/95 backdrop-blur-md shadow-2xl">
+        <div className="mb-6 flex items-center justify-center gap-2.5">
+          <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/30">
+            <span className="font-display text-sm font-bold tracking-tighter">
+              VB
+            </span>
+          </span>
+          <span className="font-display text-xl font-semibold tracking-tight text-white">
+            VBWEB · Propositor
+          </span>
+        </div>
+
+        <Card className="border-white/10 bg-card/95 shadow-2xl backdrop-blur-md">
           <CardHeader className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
+              <div className="grid size-8 place-items-center rounded-lg bg-primary/10">
                 <Lock className="size-4 text-primary" />
               </div>
-              <CardTitle>Connexion Admin</CardTitle>
+              <CardTitle>Accès privé</CardTitle>
             </div>
-            <CardDescription>
-              Accédez à votre espace d'administration sécurisé
-            </CardDescription>
+            <CardDescription>Entrez le mot de passe pour continuer.</CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    placeholder="admin@example.com"
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
                 <div className="relative">
-                  <Lock className="absolute left-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
+                  <Lock className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoFocus
                     placeholder="••••••••"
                     className="pl-8"
                   />
@@ -122,71 +113,22 @@ export default function AdminLoginPage() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm"
+                  className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
                 >
                   {error}
                 </motion.div>
               )}
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full h-9 mt-2"
-              >
-                {loading ? 'Connexion en cours...' : 'Se connecter'}
+              <Button type="submit" disabled={loading} className="mt-2 h-9 w-full">
+                {loading ? 'Vérification…' : 'Entrer'}
               </Button>
             </form>
-
-            {/* TODO: Retirer avant mise en production */}
-            <div className="mt-4">
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full"
-                onClick={() => {
-                  localStorage.setItem('authToken', 'demo-token')
-                  localStorage.setItem('authUser', JSON.stringify({ email: 'demo@template.com', name: 'Demo', role: 'admin' }))
-                  router.push('/admin/dashboard')
-                }}
-              >
-                Accès démo
-              </Button>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-border/50">
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Vous n'avez pas de compte?
-              </p>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full"
-              >
-                <Link href="/admin/register">
-                  Créer un compte
-                </Link>
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Footer sécurité + RGPD */}
-        <div className="mt-6 text-center space-y-3">
-          <div className="flex items-center justify-center gap-2 text-white/70">
-            <Shield className="size-4" />
-            <p className="text-xs">
-              Connexion sécurisée. Données respectant la RGPD, stockées en Europe
-            </p>
-          </div>
-          <Button
-            asChild
-            variant="link"
-            className="text-white/50 hover:text-white/80 text-xs h-auto p-0"
-          >
-            <Link href="/politique-de-confidentialite">
-              Politique de confidentialité
-            </Link>
-          </Button>
+        <div className="mt-6 flex items-center justify-center gap-2 text-white/60">
+          <Shield className="size-3.5" />
+          <p className="text-xs">Espace privé · accès restreint</p>
         </div>
       </motion.div>
     </div>

@@ -19,7 +19,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
-    localStorage.setItem('mymag-theme', dark ? 'dark' : 'light')
+    localStorage.setItem('propositor-theme', dark ? 'dark' : 'light')
   }, [dark])
 
   return (

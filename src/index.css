@@ -47,64 +47,94 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-brand-marine: var(--brand-marine);
+  --color-brand-marine-foreground: var(--brand-marine-foreground);
 }
 
 :root {
   color-scheme: light;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
-  --background: oklch(0.985 0.004 264);
-  --foreground: oklch(0.17 0.02 264);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0.02 240);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.02 264);
+  --card-foreground: oklch(0.18 0.02 240);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.02 264);
+  --popover-foreground: oklch(0.18 0.02 240);
 
-  /* Violet-indigo primary — direction artistique type Linear / Raycast */
-  --primary: oklch(0.48 0.22 285);
-  --primary-foreground: oklch(0.99 0.01 285);
+  /* VBWEB cyan — couleur des titres et accents (matche le logo) */
+  --primary: oklch(0.72 0.13 235);
+  --primary-foreground: oklch(0.16 0.04 240);
 
-  --secondary: oklch(0.96 0.01 264);
-  --secondary-foreground: oklch(0.25 0.02 264);
+  /* VBWEB marine — couleur des bandeaux header/footer */
+  --brand-marine: oklch(0.28 0.05 248);
+  --brand-marine-foreground: oklch(0.99 0.005 240);
 
-  --muted: oklch(0.965 0.008 264);
-  --muted-foreground: oklch(0.48 0.02 264);
+  --secondary: oklch(0.96 0.01 240);
+  --secondary-foreground: oklch(0.25 0.02 240);
 
-  --accent: oklch(0.955 0.02 285);
-  --accent-foreground: oklch(0.32 0.08 285);
+  --muted: oklch(0.965 0.008 240);
+  --muted-foreground: oklch(0.48 0.02 240);
+
+  --accent: oklch(0.94 0.04 235);
+  --accent-foreground: oklch(0.32 0.08 235);
 
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 25);
 
-  --border: oklch(0.91 0.012 264);
-  --input: oklch(0.91 0.012 264);
-  --ring: oklch(0.58 0.18 285);
+  --border: oklch(0.91 0.012 240);
+  --input: oklch(0.91 0.012 240);
+  --ring: oklch(0.72 0.13 235);
 
-  --chart-1: oklch(0.58 0.2 285);
+  --chart-1: oklch(0.72 0.13 235);
   --chart-2: oklch(0.62 0.14 220);
   --chart-3: oklch(0.72 0.12 185);
-  --chart-4: oklch(0.68 0.16 45);
+  --chart-4: oklch(0.28 0.05 248);
   --chart-5: oklch(0.6 0.2 330);
 
-  --sidebar: oklch(0.98 0.006 264);
-  --sidebar-foreground: oklch(0.17 0.02 264);
-  --sidebar-primary: oklch(0.48 0.22 285);
-  --sidebar-primary-foreground: oklch(0.99 0.01 285);
-  --sidebar-accent: oklch(0.95 0.02 285);
-  --sidebar-accent-foreground: oklch(0.25 0.08 285);
-  --sidebar-border: oklch(0.91 0.012 264);
-  --sidebar-ring: oklch(0.58 0.18 285);
+  --sidebar: oklch(0.98 0.006 240);
+  --sidebar-foreground: oklch(0.18 0.02 240);
+  --sidebar-primary: oklch(0.72 0.13 235);
+  --sidebar-primary-foreground: oklch(0.16 0.04 240);
+  --sidebar-accent: oklch(0.94 0.04 235);
+  --sidebar-accent-foreground: oklch(0.32 0.08 235);
+  --sidebar-border: oklch(0.91 0.012 240);
+  --sidebar-ring: oklch(0.72 0.13 235);
 
-  /* Surfaces & effets premium */
-  --shadow-xs: 0 1px 2px oklch(0.2 0.02 264 / 0.04);
-  --shadow-sm: 0 2px 8px oklch(0.2 0.02 264 / 0.06);
-  --shadow-md: 0 8px 24px oklch(0.2 0.02 264 / 0.08);
-  --shadow-lg: 0 24px 48px oklch(0.2 0.02 264 / 0.1);
-  --glow: 0 0 80px oklch(0.55 0.2 285 / 0.25);
+  /* Surfaces & effets */
+  --shadow-xs: 0 1px 2px oklch(0.2 0.02 240 / 0.04);
+  --shadow-sm: 0 2px 8px oklch(0.2 0.02 240 / 0.06);
+  --shadow-md: 0 8px 24px oklch(0.2 0.02 240 / 0.08);
+  --shadow-lg: 0 24px 48px oklch(0.2 0.02 240 / 0.1);
+  --glow: 0 0 80px oklch(0.65 0.13 235 / 0.25);
+}
+
+/* Override des couleurs primary/marine en fonction de la marque (data-brand sur le shell) */
+[data-brand='bimi'] {
+  --primary: oklch(0.74 0.16 60);
+  --primary-foreground: oklch(0.18 0.04 60);
+  --brand-marine: oklch(0.25 0.05 65);
+  --brand-marine-foreground: oklch(0.99 0.005 65);
+  --ring: oklch(0.74 0.16 60);
+  --accent: oklch(0.94 0.05 60);
+  --accent-foreground: oklch(0.32 0.1 60);
+  --chart-1: oklch(0.74 0.16 60);
+  --chart-4: oklch(0.25 0.05 65);
+}
+[data-brand='ouibo'] {
+  --primary: oklch(0.65 0.22 305);
+  --primary-foreground: oklch(0.99 0.01 305);
+  --brand-marine: oklch(0.24 0.07 295);
+  --brand-marine-foreground: oklch(0.99 0.005 295);
+  --ring: oklch(0.65 0.22 305);
+  --accent: oklch(0.94 0.05 305);
+  --accent-foreground: oklch(0.32 0.12 305);
+  --chart-1: oklch(0.65 0.22 305);
+  --chart-4: oklch(0.24 0.07 295);
 }
 
 .dark {
@@ -199,5 +229,225 @@
       'rlig' 1,
       'calt' 1,
       'ss01' 1;
+  }
+}
+
+/* Tiptap / ProseMirror — calé sur le rendu public Markdown VBWEB (premium) */
+.prose-vbweb {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+}
+.prose-vbweb h1 {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+}
+.prose-vbweb h2 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-left: 1rem;
+}
+.prose-vbweb h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--primary);
+}
+.prose-vbweb h2:first-child {
+  margin-top: 0;
+}
+.prose-vbweb h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+.prose-vbweb h4 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+.prose-vbweb p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: oklch(0.18 0.02 240 / 0.9);
+  margin-bottom: 1rem;
+}
+.prose-vbweb p:last-child {
+  margin-bottom: 0;
+}
+.prose-vbweb strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.prose-vbweb em {
+  font-style: italic;
+}
+.prose-vbweb ul {
+  margin: 0 0 1.25rem 0;
+  padding-left: 0.25rem;
+  list-style: none;
+}
+.prose-vbweb ul > li {
+  position: relative;
+  padding-left: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: oklch(0.18 0.02 240 / 0.9);
+  margin-bottom: 0.5rem;
+}
+.prose-vbweb ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px oklch(0.72 0.13 235 / 0.15);
+}
+.prose-vbweb ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.prose-vbweb ol > li {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: oklch(0.18 0.02 240 / 0.9);
+  margin-bottom: 0.5rem;
+}
+.prose-vbweb ol > li::marker {
+  color: var(--primary);
+  font-weight: 700;
+}
+.prose-vbweb blockquote {
+  margin: 1.5rem 0;
+  border: 1px solid oklch(0.72 0.13 235 / 0.2);
+  background: oklch(0.72 0.13 235 / 0.05);
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.75rem;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.65;
+  box-shadow: 0 2px 8px oklch(0.2 0.02 240 / 0.04);
+}
+.prose-vbweb a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: 500;
+}
+.prose-vbweb a:hover {
+  text-decoration-thickness: 2px;
+}
+.prose-vbweb code {
+  background: var(--muted);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.92em;
+  font-family: ui-monospace, monospace;
+}
+.prose-vbweb hr {
+  margin: 2.5rem 0;
+  border-color: oklch(0.91 0.012 240);
+}
+.prose-vbweb table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+  border: 1px solid oklch(0.91 0.012 240);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px oklch(0.2 0.02 240 / 0.04);
+}
+.prose-vbweb thead {
+  background: var(--brand-marine);
+  color: var(--brand-marine-foreground);
+}
+.prose-vbweb th {
+  padding: 0.875rem 1.25rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+.prose-vbweb th:last-child {
+  border-right: none;
+}
+.prose-vbweb td {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid oklch(0.91 0.012 240);
+  border-right: 1px solid oklch(0.91 0.012 240);
+  color: oklch(0.18 0.02 240 / 0.9);
+}
+.prose-vbweb td:last-child {
+  border-right: none;
+}
+.prose-vbweb tr:nth-child(even) td {
+  background: oklch(0.965 0.008 240 / 0.5);
+}
+.prose-vbweb .is-editor-empty:first-child::before {
+  color: oklch(0.18 0.02 240 / 0.3);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* CSS print : PDF identique au rendu, sans contrôles d'admin */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body {
+    background: white !important;
+  }
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .prose-vbweb a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+  /* éviter les coupures moches dans les sections */
+  .prose-vbweb h2,
+  .prose-vbweb h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .prose-vbweb table,
+  .prose-vbweb blockquote {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

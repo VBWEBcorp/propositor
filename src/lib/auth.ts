@@ -37,14 +37,6 @@ export async function verifyAuth(request: NextRequest) {
     return { authenticated: false, user: null }
   }
 
-  // TODO: Retirer avant mise en production
-  if (token === 'demo-token') {
-    return {
-      authenticated: true,
-      user: { userId: 'demo', email: 'demo@template.com', role: 'admin' },
-    }
-  }
-
   const payload = verifyToken(token)
   if (!payload) {
     return { authenticated: false, user: null }

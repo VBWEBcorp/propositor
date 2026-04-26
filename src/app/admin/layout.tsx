@@ -2,23 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { AdminSidebar, MobileMenuButton } from '@/components/admin/sidebar'
-import { SidebarProvider, useSidebar } from '@/components/admin/sidebar-context'
-import { cn } from '@/lib/utils'
 
 const publicPaths = ['/admin/login', '/admin/register']
-
-function AdminMain({ children }: { children: React.ReactNode }) {
-  const { collapsed, isMobile } = useSidebar()
-  return (
-    <main className={cn(
-      'flex-1 min-h-screen bg-muted/30 transition-all duration-200',
-      isMobile ? 'ml-0' : collapsed ? 'ml-[60px]' : 'ml-[220px]'
-    )}>
-      {children}
-    </main>
-  )
-}
 
 export default function AdminLayout({
   children,
@@ -36,9 +21,7 @@ export default function AdminLayout({
     const token = localStorage.getItem('authToken')
 
     if (isPublicPage) {
-      if (token) {
-        router.push('/admin/dashboard')
-      }
+      if (token) router.push('/admin')
       setLoading(false)
       return
     }
@@ -56,13 +39,5 @@ export default function AdminLayout({
   if (isPublicPage) return children
   if (!authenticated) return null
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen">
-        <AdminSidebar />
-        <MobileMenuButton />
-        <AdminMain>{children}</AdminMain>
-      </div>
-    </SidebarProvider>
-  )
+  return <div className="min-h-screen bg-muted/30">{children}</div>
 }
