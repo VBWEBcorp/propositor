@@ -445,6 +445,35 @@ export function PropositionEditor({
             </span>
           </button>
 
+          {/* Boutons inline visibles à partir de tablette (md:) */}
+          <button
+            type="button"
+            onClick={copyLink}
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 text-xs font-medium text-foreground/80 transition-colors hover:bg-muted md:inline-flex"
+            title="Copier le lien"
+          >
+            <Copy className="size-3.5" />
+            <span>{copied ? 'Copié !' : 'Lien'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={downloadPdf}
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 text-xs font-medium text-foreground/80 transition-colors hover:bg-muted md:inline-flex"
+            title="Télécharger en PDF"
+          >
+            <Download className="size-3.5" />
+            <span>PDF</span>
+          </button>
+          <a
+            href={`/propositions/${data.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 md:inline-flex"
+            title="Ouvrir côté client"
+          >
+            <ExternalLink className="size-4" />
+          </a>
+
           <div className="relative">
             <button
               type="button"
