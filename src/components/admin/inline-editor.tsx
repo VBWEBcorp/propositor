@@ -4,8 +4,14 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
+// @ts-expect-error - pas de types officiels pour @joplin/turndown-plugin-gfm
+import { gfm } from '@joplin/turndown-plugin-gfm'
 import { useEffect, useRef } from 'react'
 
 const turndown = new TurndownService({
@@ -15,8 +21,10 @@ const turndown = new TurndownService({
   emDelimiter: '*',
 })
 
-// turndown perd parfois les tableaux — on les garde tels quels en HTML
-turndown.keep(['table', 'thead', 'tbody', 'tr', 'th', 'td'] as Array<keyof HTMLElementTagNameMap>)
+// Plugin GFM : convertit correctement <table>/<thead>/<tr>/<th>/<td>
+// en tableau markdown | col | et inversement. Sans ça turndown supprime
+// les tableaux ou les laisse en HTML brut.
+turndown.use(gfm)
 
 export function markdownToHtml(md: string): string {
   return marked.parse(md, { async: false }) as string
@@ -49,6 +57,13 @@ export function InlineEditor({ initialMarkdown, onChange, className }: Props) {
       Placeholder.configure({
         placeholder: 'Clique ici pour modifier le contenu…',
       }),
+      Table.configure({
+        resizable: false,
+        HTMLAttributes: { class: 'tiptap-table' },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: markdownToHtml(initialMarkdown),
     editorProps: {

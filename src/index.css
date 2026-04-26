@@ -430,6 +430,24 @@
 .prose-vbweb tr:nth-child(even) td {
   background: oklch(0.965 0.008 240 / 0.5);
 }
+/* ProseMirror cellules : padding correct + bordures + styles tab Tiptap */
+.prose-vbweb .ProseMirror table,
+.prose-vbweb table.tiptap-table {
+  table-layout: fixed;
+}
+.prose-vbweb .ProseMirror td,
+.prose-vbweb .ProseMirror th {
+  position: relative;
+  vertical-align: top;
+}
+.prose-vbweb .ProseMirror .selectedCell:after {
+  background: rgba(79, 195, 247, 0.15);
+  content: '';
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
 .prose-vbweb .is-editor-empty:first-child::before {
   color: oklch(0.18 0.02 240 / 0.3);
   content: attr(data-placeholder);
