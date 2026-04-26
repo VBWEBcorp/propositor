@@ -58,9 +58,14 @@ export function PropositionShell({
               </div>
             ) : null}
             <span aria-hidden className="hidden h-8 w-px bg-white/15 sm:inline-block" />
-            <p className="hidden text-[11px] tracking-wide text-brand-marine-foreground/75 sm:block">
-              &copy; {new Date().getFullYear()} {b.name}
-            </p>
+            <a
+              href={`https://${b.website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden text-[12px] font-medium tracking-wide text-brand-marine-foreground/85 transition-colors hover:text-brand-marine-foreground sm:block"
+            >
+              {b.website}
+            </a>
           </div>
 
           <p className="hidden text-[11px] uppercase tracking-[0.18em] text-brand-marine-foreground/70 md:block">

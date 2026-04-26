@@ -13,6 +13,8 @@ export type Brand = {
   logoUrl: string | null
   /** Email principal de contact pour cette marque */
   email: string
+  /** Domaine sans https://, affiché dans le footer */
+  website: string
   /** Couleur du texte sur fond marine */
   marineForeground: string
   /** Portraits optionnels affichés dans le footer (ronds, à droite du logo).
@@ -30,6 +32,7 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/C3ZJ3z59/VBWEB-LOGO-BLEU-BLANC.png',
     email: 'contact@vbweb.fr',
+    website: 'vbweb.fr',
     portraits: ['https://i.ibb.co/ZpkH8MbS/image.webp'],
   },
   bimi: {
@@ -41,6 +44,7 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/DDnkv6CH/BIMI-png.png',
     email: 'contact@bimi.fr',
+    website: 'bimi-restaurant.com',
     // pas de photos
   },
   ouibo: {
@@ -52,6 +56,7 @@ export const BRANDS: Record<BrandId, Brand> = {
     marineForeground: '#FFFFFF',
     logoUrl: 'https://i.ibb.co/Y408rXy2/Logo-OUIBO-removebg-preview.png',
     email: 'contact@ouibo.fr',
+    website: 'ouibo.fr',
     portraits: [
       'https://i.ibb.co/B55PQmP0/Valentin.jpg',
       'https://i.ibb.co/23zMSVBF/Sarah.jpg',

@@ -57,17 +57,20 @@ export function PropositionHero({
           </div>
 
           {(number || date) ? (
-            <div className="flex flex-col items-end gap-0.5 text-right">
-              {number ? (
-                <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
-                  {number}
-                </p>
-              ) : null}
-              {date ? (
-                <p className="text-[11px] uppercase tracking-[0.18em] text-brand-marine-foreground/70 sm:text-xs">
-                  Date de création · {date}
-                </p>
-              ) : null}
+            <div className="flex items-center gap-4 sm:gap-5">
+              <span aria-hidden className="h-10 w-px bg-white/25 sm:h-12" />
+              <div className="flex flex-col items-end gap-0.5 text-right">
+                {number ? (
+                  <p className="font-display text-base font-semibold tracking-tight sm:text-lg">
+                    {number}
+                  </p>
+                ) : null}
+                {date ? (
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-brand-marine-foreground/70 sm:text-xs">
+                    Date de création · {date}
+                  </p>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>

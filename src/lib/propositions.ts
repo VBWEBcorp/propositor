@@ -213,7 +213,7 @@ function toPlain(doc: PropositionDoc): PropositionWithMeta {
 export async function nextProposalNumber(): Promise<string> {
   await connectDB()
   const year = new Date().getFullYear()
-  const prefix = `${year}-`
+  const prefix = `N°${year}-`
   const docs = await Proposition.find(
     { number: { $regex: `^${prefix}` } },
     { number: 1 }
@@ -224,8 +224,10 @@ export async function nextProposalNumber(): Promise<string> {
     const tail = parseInt(n.slice(prefix.length), 10)
     if (!Number.isNaN(tail) && tail > max) max = tail
   }
-  const next = String(max + 1).padStart(2, '0')
-  return `N°${year}-${next}`
+  // Démarre à 10 minimum (comme s'il y avait déjà eu 9 docs avant cette année)
+  const candidate = Math.max(max + 1, 10)
+  const next = String(candidate).padStart(2, '0')
+  return `${prefix}${next}`
 }
 
 export async function listPropositions(): Promise<PropositionWithMeta[]> {
