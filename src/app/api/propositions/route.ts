@@ -1,7 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { verifyAuth } from '@/lib/auth'
-import { createProposition, listPropositions } from '@/lib/propositions'
+import {
+  createProposition,
+  getProposition,
+  listPropositions,
+} from '@/lib/propositions'
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+async function uniqueSlug(base: string): Promise<string> {
+  const root = base || 'document'
+  let slug = root
+  let i = 2
+  while (await getProposition(slug)) {
+    slug = `${root}-${i}`
+    i++
+    if (i > 99) {
+      slug = `${root}-${Date.now()}`
+      break
+    }
+  }
+  return slug
+}
 
 export async function GET() {
   const items = await listPropositions()
@@ -17,21 +45,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  if (!body?.slug || !body?.client) {
-    return NextResponse.json(
-      { error: 'slug et client sont requis' },
-      { status: 400 }
-    )
+  if (!body?.client) {
+    return NextResponse.json({ error: 'client est requis' }, { status: 400 })
   }
 
-  const slug = String(body.slug)
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-
-  if (!slug) {
-    return NextResponse.json({ error: 'Slug invalide' }, { status: 400 })
+  // Si slug fourni : on slugify ; sinon on auto-génère depuis le nom client (avec uniqueSlug)
+  let slug: string
+  if (body.slug) {
+    slug = slugify(String(body.slug))
+    if (!slug) {
+      return NextResponse.json({ error: 'Slug invalide' }, { status: 400 })
+    }
+  } else {
+    slug = await uniqueSlug(slugify(String(body.client)))
   }
 
   try {

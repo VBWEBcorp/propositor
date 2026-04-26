@@ -43,7 +43,9 @@ export default function NewDocPage() {
 
     try {
       const token = localStorage.getItem('authToken')
-      const res = await fetch('/api/propositions/extract', {
+
+      // 1) IA via Edge runtime (pas de timeout 10s côté Netlify)
+      const aiRes = await fetch('/api/ai/extract', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,42 +53,64 @@ export default function NewDocPage() {
         },
         body: JSON.stringify({ conversation: text, brand, docType }),
       })
-      if (!res.ok) {
-        // Tente d'extraire un JSON, sinon message contextualisé selon le code HTTP
+      if (!aiRes.ok) {
         let detail = ''
         try {
-          const j = await res.json()
+          const j = await aiRes.json()
           detail = (j as { error?: string }).error ?? ''
         } catch {
-          // pas du JSON (ex: page d'erreur HTML de Netlify)
+          /* pas du JSON */
         }
-        if (res.status === 401) {
+        if (aiRes.status === 401) {
+          throw new Error('Session expirée. Reconnecte-toi.')
+        }
+        if (aiRes.status === 504 || aiRes.status === 408) {
           throw new Error(
-            'Session expirée. Déconnecte-toi puis reconnecte-toi avec ton mot de passe.'
+            `Délai IA dépassé (HTTP ${aiRes.status}). Réessaie ou réduis le texte collé.`
           )
         }
-        if (res.status === 504 || res.status === 408) {
+        if (aiRes.status === 502 || aiRes.status === 503) {
           throw new Error(
-            `Délai dépassé (HTTP ${res.status}). L'IA a mis trop de temps à répondre. Sur Netlify Free le timeout est limité à 10s ; passe en plan Pro (26s) ou réduis la longueur de ce que tu colles.`
+            `DeepSeek momentanément indisponible (HTTP ${aiRes.status}). Réessaie dans quelques secondes.`
           )
         }
-        if (res.status === 502 || res.status === 503) {
-          throw new Error(
-            `Serveur indisponible (HTTP ${res.status}). DeepSeek ou Netlify est momentanément en panne. Réessaie dans quelques secondes.`
-          )
-        }
-        if (res.status === 500) {
+        if (aiRes.status === 500) {
           throw new Error(
             detail
-              ? `Erreur serveur : ${detail}`
-              : 'Erreur serveur (HTTP 500). Vérifie que DEEPSEEK_API_KEY est bien défini dans les variables Netlify.'
+              ? `Erreur IA : ${detail}`
+              : 'Erreur IA. Vérifie que DEEPSEEK_API_KEY est défini dans Netlify.'
           )
         }
         throw new Error(
-          detail || `Erreur HTTP ${res.status} ${res.statusText || ''}`.trim()
+          detail || `Erreur IA HTTP ${aiRes.status} ${aiRes.statusText || ''}`.trim()
         )
       }
-      const { slug } = (await res.json()) as { slug: string }
+      const ai = (await aiRes.json()) as {
+        client: string
+        baseline: string
+        date: string
+        content: string
+        brand: string
+        docType: string
+      }
+
+      // 2) Création du doc en DB (route Node, rapide, < 1s)
+      const dbRes = await fetch('/api/propositions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(ai),
+      })
+      if (!dbRes.ok) {
+        const j = await dbRes.json().catch(() => ({}))
+        throw new Error(
+          (j as { error?: string }).error ??
+            `Erreur création doc HTTP ${dbRes.status}`
+        )
+      }
+      const { slug } = (await dbRes.json()) as { slug: string }
       router.push(`/admin/edit/${slug}`)
     } catch (e) {
       // Erreurs réseau (offline, CORS, abort, etc.)
