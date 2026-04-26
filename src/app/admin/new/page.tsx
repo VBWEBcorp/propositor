@@ -52,13 +52,51 @@ export default function NewDocPage() {
         body: JSON.stringify({ conversation: text, brand, docType }),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error ?? 'Erreur de génération')
+        // Tente d'extraire un JSON, sinon message contextualisé selon le code HTTP
+        let detail = ''
+        try {
+          const j = await res.json()
+          detail = (j as { error?: string }).error ?? ''
+        } catch {
+          // pas du JSON (ex: page d'erreur HTML de Netlify)
+        }
+        if (res.status === 401) {
+          throw new Error(
+            'Session expirée. Déconnecte-toi puis reconnecte-toi avec ton mot de passe.'
+          )
+        }
+        if (res.status === 504 || res.status === 408) {
+          throw new Error(
+            `Délai dépassé (HTTP ${res.status}). L'IA a mis trop de temps à répondre. Sur Netlify Free le timeout est limité à 10s ; passe en plan Pro (26s) ou réduis la longueur de ce que tu colles.`
+          )
+        }
+        if (res.status === 502 || res.status === 503) {
+          throw new Error(
+            `Serveur indisponible (HTTP ${res.status}). DeepSeek ou Netlify est momentanément en panne. Réessaie dans quelques secondes.`
+          )
+        }
+        if (res.status === 500) {
+          throw new Error(
+            detail
+              ? `Erreur serveur : ${detail}`
+              : 'Erreur serveur (HTTP 500). Vérifie que DEEPSEEK_API_KEY est bien défini dans les variables Netlify.'
+          )
+        }
+        throw new Error(
+          detail || `Erreur HTTP ${res.status} ${res.statusText || ''}`.trim()
+        )
       }
       const { slug } = (await res.json()) as { slug: string }
       router.push(`/admin/edit/${slug}`)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur')
+      // Erreurs réseau (offline, CORS, abort, etc.)
+      if (e instanceof TypeError && e.message.includes('fetch')) {
+        setError(
+          'Connexion impossible avec le serveur. Vérifie ta connexion internet.'
+        )
+      } else {
+        setError(e instanceof Error ? e.message : 'Erreur inconnue')
+      }
       setLoading(false)
     } finally {
       clearInterval(stepInterval)
