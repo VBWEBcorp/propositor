@@ -27,7 +27,15 @@ const turndown = new TurndownService({
 turndown.use(gfm)
 
 export function markdownToHtml(md: string): string {
-  return marked.parse(md, { async: false }) as string
+  let html = marked.parse(md, { async: false }) as string
+  // Aplatit <thead><tr>...</tr></thead><tbody> en <tbody><tr>...</tr>... pour
+  // eviter que Tiptap rende un bandeau marine vide au-dessus de la 1ere ligne
+  // (Tiptap a une mauvaise interpretation de thead, et garde une row vide).
+  html = html.replace(
+    /<thead>([\s\S]*?)<\/thead>\s*<tbody>/g,
+    '<tbody>$1'
+  )
+  return html
 }
 
 export function htmlToMarkdown(html: string): string {

@@ -488,6 +488,14 @@
   color: inherit !important;
   background: transparent !important;
 }
+
+/* SAFETY NET 2 : si malgre tout un <thead> vide subsiste (cas Tiptap),
+ * on le masque pour eviter le bandeau marine fantome. */
+.prose-vbweb thead:empty,
+.prose-vbweb thead:has(tr:empty),
+.prose-vbweb thead > tr:empty {
+  display: none !important;
+}
 .prose-vbweb td {
   padding: 0.875rem 1.25rem;
   border-top: 1px solid oklch(0.91 0.012 240);
