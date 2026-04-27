@@ -404,11 +404,15 @@
 }
 .prose-vbweb thead {
   background: var(--brand-marine);
-  color: var(--brand-marine-foreground);
 }
+/* Styles appliques directement sur th : fonctionne aussi quand le HTML
+ * n'a pas de <thead> (cas Tiptap qui met les <th> dans <tbody>). */
 .prose-vbweb th {
+  background: var(--brand-marine);
+  color: var(--brand-marine-foreground);
   padding: 0.875rem 1.25rem;
   text-align: left;
+  font-family: var(--font-display);
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -423,6 +427,9 @@
   border-top: 1px solid oklch(0.91 0.012 240);
   border-right: 1px solid oklch(0.91 0.012 240);
   color: oklch(0.18 0.02 240 / 0.9);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  vertical-align: top;
 }
 .prose-vbweb td:last-child {
   border-right: none;

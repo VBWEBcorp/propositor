@@ -185,6 +185,12 @@ export function PropositionEditor({
       const html2canvas = (await import('html2canvas-pro')).default
       const { default: jsPDF } = await import('jspdf')
 
+      // Attend que toutes les fonts soient chargees pour eviter
+      // que html2canvas-pro tombe sur un fallback serif
+      if (typeof document !== 'undefined' && (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts) {
+        await (document as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready
+      }
+
       const captureOpts = {
         scale: 2,
         useCORS: true,
