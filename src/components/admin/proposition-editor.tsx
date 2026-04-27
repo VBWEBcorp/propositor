@@ -237,18 +237,31 @@ export function PropositionEditor({
       type BlockMeta = {
         img: string
         h: number
+        w: number
         tagName: string
         isHeading: boolean
       }
+      // Hauteur max qu'un bloc peut occuper sur une page (pour pas deborder le footer)
+      const maxBlockHeight = pageHeight - footerH - 14 - 6 // = ~245mm
+
       const blockData: BlockMeta[] = []
       for (const block of blocks) {
         const c = await html2canvas(block, captureOpts)
-        const h = (c.height * contentWidth) / c.width
+        let h = (c.height * contentWidth) / c.width
+        let w = contentWidth
+        // Si le bloc serait plus grand que la page disponible : shrink isotrope
+        if (h > maxBlockHeight) {
+          const scale = maxBlockHeight / h
+          h = h * scale
+          w = w * scale
+        }
         blockData.push({
           img: c.toDataURL('image/jpeg', 0.95),
           h,
           tagName: block.tagName,
           isHeading: /^H[1-6]$/.test(block.tagName),
+          // Largeur effective (peut etre < contentWidth si bloc shrunk)
+          w,
         })
       }
 
@@ -363,7 +376,9 @@ export function PropositionEditor({
         }
 
         cursorY += spaceBefore(cur.tagName, prevTag)
-        pdf.addImage(cur.img, 'JPEG', sideMargin, cursorY, contentWidth, cur.h)
+        // Centre horizontalement si le bloc a ete shrunk (largeur < contentWidth)
+        const offsetX = sideMargin + (contentWidth - cur.w) / 2
+        pdf.addImage(cur.img, 'JPEG', offsetX, cursorY, cur.w, cur.h)
         cursorY += cur.h
         prevTag = cur.tagName
 
@@ -373,7 +388,8 @@ export function PropositionEditor({
             nextPage()
           }
           cursorY += spaceBefore(next.tagName, prevTag)
-          pdf.addImage(next.img, 'JPEG', sideMargin, cursorY, contentWidth, next.h)
+          const nextX = sideMargin + (contentWidth - next.w) / 2
+          pdf.addImage(next.img, 'JPEG', nextX, cursorY, next.w, next.h)
           cursorY += next.h
           prevTag = next.tagName
           i++

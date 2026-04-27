@@ -93,9 +93,8 @@ export function PropositionHero({
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
             Objet du document
           </p>
-          <h1 className="mt-3 font-display text-3xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:text-[2.6rem]">
-            {baseline || `Document pour ${client}`}
-            <br />
+          <h1 className="mt-3 font-display text-3xl font-semibold leading-[1.15] tracking-tight text-balance text-foreground sm:text-4xl lg:text-[2.6rem]">
+            {baseline || `Document pour ${client}`}{' '}
             <span className="text-foreground/55">pour </span>
             <span className="text-heading">{client}</span>
           </h1>
