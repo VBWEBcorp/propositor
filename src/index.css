@@ -432,6 +432,21 @@
 .prose-vbweb th:last-child {
   border-right: none;
 }
+/* Tiptap wrappe le contenu des cellules dans des <p>. Forcer ces enfants
+ * a heriter la couleur du <th> pour que le texte de l'en-tete reste blanc. */
+.prose-vbweb th *,
+.prose-vbweb thead * {
+  color: inherit !important;
+  background: transparent !important;
+  margin: 0 !important;
+}
+.prose-vbweb th p {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
 .prose-vbweb td {
   padding: 0.875rem 1.25rem;
   border-top: 1px solid oklch(0.91 0.012 240);
