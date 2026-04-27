@@ -406,18 +406,28 @@
   background: var(--brand-marine);
 }
 /* Styles appliques directement sur th : fonctionne aussi quand le HTML
- * n'a pas de <thead> (cas Tiptap qui met les <th> dans <tbody>). */
+ * n'a pas de <thead> (cas Tiptap qui met les <th> dans <tbody>).
+ * Couleurs en HEX explicites (pas de var oklch) car html2canvas-pro a
+ * du mal a resoudre les CSS variables quand elles contiennent oklch. */
 .prose-vbweb th {
-  background: var(--brand-marine);
-  color: var(--brand-marine-foreground);
+  background: #173656; /* defaut VBWEB marine */
+  color: #ffffff;
   padding: 0.875rem 1.25rem;
   text-align: left;
-  font-family: var(--font-display);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+[data-brand='bimi'] .prose-vbweb th,
+.prose-vbweb [data-brand='bimi'] th {
+  background: #3A1F08;
+}
+[data-brand='ouibo'] .prose-vbweb th,
+.prose-vbweb [data-brand='ouibo'] th {
+  background: #2A1748;
 }
 .prose-vbweb th:last-child {
   border-right: none;
