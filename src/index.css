@@ -447,6 +447,47 @@
   text-transform: inherit;
   letter-spacing: inherit;
 }
+
+/* SAFETY NET : Tiptap rend parfois la 1ere ligne en <td> au lieu de <th>.
+ * On force visuellement la 1ere ligne d'un tableau a avoir le style marine + blanc,
+ * peu importe la balise. */
+.prose-vbweb table > tbody > tr:first-child > td,
+.prose-vbweb table > tbody > tr:first-child > th,
+.prose-vbweb table > tr:first-child > td,
+.prose-vbweb table > tr:first-child > th {
+  background: #173656 !important;
+  color: #ffffff !important;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  padding: 0.875rem 1.25rem !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-top: none !important;
+}
+.prose-vbweb table > tbody > tr:first-child > *:last-child,
+.prose-vbweb table > tr:first-child > *:last-child {
+  border-right: none !important;
+}
+[data-brand='bimi'] .prose-vbweb table > tbody > tr:first-child > td,
+[data-brand='bimi'] .prose-vbweb table > tbody > tr:first-child > th,
+[data-brand='bimi'] .prose-vbweb table > tr:first-child > td,
+[data-brand='bimi'] .prose-vbweb table > tr:first-child > th {
+  background: #3A1F08 !important;
+}
+[data-brand='ouibo'] .prose-vbweb table > tbody > tr:first-child > td,
+[data-brand='ouibo'] .prose-vbweb table > tbody > tr:first-child > th,
+[data-brand='ouibo'] .prose-vbweb table > tr:first-child > td,
+[data-brand='ouibo'] .prose-vbweb table > tr:first-child > th {
+  background: #2A1748 !important;
+}
+/* Et tout enfant <p> dans cette 1ere ligne herite la couleur (pas overrride foncee) */
+.prose-vbweb table > tbody > tr:first-child > * *,
+.prose-vbweb table > tr:first-child > * * {
+  color: inherit !important;
+  background: transparent !important;
+}
 .prose-vbweb td {
   padding: 0.875rem 1.25rem;
   border-top: 1px solid oklch(0.91 0.012 240);

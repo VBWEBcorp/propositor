@@ -21,10 +21,9 @@ export function PropositionHero({
   const b = getBrand(brand)
 
   return (
-    <>
+    <div data-pdf="header">
       {/* Bandeau marine — version premium */}
       <div
-        data-pdf="header"
         className="relative overflow-hidden bg-brand-marine text-brand-marine-foreground"
       >
         <div
@@ -101,6 +100,6 @@ export function PropositionHero({
           <div className="mt-6 h-[2px] w-12 rounded-full bg-primary" />
         </div>
       </header>
-    </>
+    </div>
   )
 }
