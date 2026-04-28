@@ -20,28 +20,62 @@ import { BrandLogo } from '@/components/proposition/brand-logo'
 import { BRAND_LIST, DOC_TYPES } from '@/lib/brands'
 import type { BrandId, DocType } from '@/lib/propositions-types'
 
-const PLACEHOLDER = `Colle ici tout ce que tu as sur ce client.
+const STARTER_TEMPLATE_PROP = `## Introduction
 
-Une conversation Claude/ChatGPT entière, des notes, un brief, un pavé en vrac. L'IA va lire, structurer et reposer le contenu dans le template choisi en gardant tes mots.`
+Présente le projet en quelques lignes.
 
-const STEPS = [
-  'Analyse du contenu…',
-  'Extraction du contexte client…',
-  'Mise en forme dans le template…',
-  'Sauvegarde…',
-]
+## 1. Contexte
+
+Décris le contexte du client.
+
+## 2. Problématique
+
+Liste les problèmes à résoudre.
+
+## 3. Proposition
+
+Explique ce que tu proposes.
+
+## 4. Tarifs
+
+| Prestation | Montant |
+| --- | --- |
+| Prestation 1 | **0 € HT** |
+| Prestation 2 | **0 € HT** |
+| **Total** | **0 € HT** |
+`
+
+const STARTER_TEMPLATE_SYNTHESE = `## Synthèse exécutive
+
+Résumé en 3-4 lignes des points-clés.
+
+## État des lieux
+
+Constats et chiffres-clés.
+
+## Recommandations
+
+Liste priorisée des actions à mener.
+
+## Plan d'action
+
+| Action | Priorité | Délai |
+| --- | --- | --- |
+| Action 1 | Haute | Q1 |
+| Action 2 | Moyenne | Q2 |
+`
 
 export default function NewDocPage() {
   const router = useRouter()
-  const [text, setText] = useState('')
   const [brand, setBrand] = useState<BrandId>('vbweb')
   const [docType, setDocType] = useState<DocType>('proposition')
-  const [loading, setLoading] = useState(false)
-  const [stepIndex, setStepIndex] = useState(0)
+  const [client, setClient] = useState('')
+  const [baseline, setBaseline] = useState('')
+  const [clientLogoUrl, setClientLogoUrl] = useState('')
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [clientLogoUrl, setClientLogoUrl] = useState<string>('')
-  const [uploadingLogo, setUploadingLogo] = useState(false)
 
   async function handleLogoUpload(file: File) {
     setUploadingLogo(true)
@@ -68,103 +102,41 @@ export default function NewDocPage() {
     }
   }
 
-  async function generate() {
+  async function create() {
     setError(null)
-    setLoading(true)
-    setStepIndex(0)
-
-    const stepInterval = setInterval(() => {
-      setStepIndex((i) => Math.min(i + 1, STEPS.length - 1))
-    }, 1800)
-
+    setCreating(true)
     try {
       const token = localStorage.getItem('authToken')
-
-      // 1) IA via Edge runtime (pas de timeout 10s côté Netlify)
-      const aiRes = await fetch('/api/ai/extract', {
+      const content =
+        docType === 'synthese' ? STARTER_TEMPLATE_SYNTHESE : STARTER_TEMPLATE_PROP
+      const res = await fetch('/api/propositions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ conversation: text, brand, docType }),
+        body: JSON.stringify({
+          brand,
+          docType,
+          client: client.trim() || 'Nouveau client',
+          baseline: baseline.trim(),
+          content,
+          clientLogoUrl,
+        }),
       })
-      if (!aiRes.ok) {
-        let detail = ''
-        try {
-          const j = await aiRes.json()
-          detail = (j as { error?: string }).error ?? ''
-        } catch {
-          /* pas du JSON */
-        }
-        if (aiRes.status === 401) {
-          throw new Error('Session expirée. Reconnecte-toi.')
-        }
-        if (aiRes.status === 504 || aiRes.status === 408) {
-          throw new Error(
-            `Délai IA dépassé (HTTP ${aiRes.status}). Réessaie ou réduis le texte collé.`
-          )
-        }
-        if (aiRes.status === 502 || aiRes.status === 503) {
-          throw new Error(
-            `DeepSeek momentanément indisponible (HTTP ${aiRes.status}). Réessaie dans quelques secondes.`
-          )
-        }
-        if (aiRes.status === 500) {
-          throw new Error(
-            detail
-              ? `Erreur IA : ${detail}`
-              : 'Erreur IA. Vérifie que DEEPSEEK_API_KEY est défini dans Netlify.'
-          )
-        }
-        throw new Error(
-          detail || `Erreur IA HTTP ${aiRes.status} ${aiRes.statusText || ''}`.trim()
-        )
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error((j as { error?: string }).error ?? `Erreur HTTP ${res.status}`)
       }
-      const ai = (await aiRes.json()) as {
-        client: string
-        baseline: string
-        date: string
-        content: string
-        brand: string
-        docType: string
-      }
-
-      // 2) Création du doc en DB (route Node, rapide, < 1s)
-      const dbRes = await fetch('/api/propositions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...ai, clientLogoUrl }),
-      })
-      if (!dbRes.ok) {
-        const j = await dbRes.json().catch(() => ({}))
-        throw new Error(
-          (j as { error?: string }).error ??
-            `Erreur création doc HTTP ${dbRes.status}`
-        )
-      }
-      const { slug } = (await dbRes.json()) as { slug: string }
+      const { slug } = (await res.json()) as { slug: string }
       router.push(`/admin/edit/${slug}`)
     } catch (e) {
-      // Erreurs réseau (offline, CORS, abort, etc.)
-      if (e instanceof TypeError && e.message.includes('fetch')) {
-        setError(
-          'Connexion impossible avec le serveur. Vérifie ta connexion internet.'
-        )
-      } else {
-        setError(e instanceof Error ? e.message : 'Erreur inconnue')
-      }
-      setLoading(false)
-    } finally {
-      clearInterval(stepInterval)
+      setError(e instanceof Error ? e.message : 'Erreur')
+      setCreating(false)
     }
   }
 
-  const charCount = text.length
-  const canGenerate = !loading && charCount >= 30
+  const canCreate = !creating && client.trim().length > 0
 
   return (
     <div data-brand={brand} className="flex min-h-screen flex-col bg-muted/30">
@@ -183,25 +155,25 @@ export default function NewDocPage() {
               Nouveau document
             </p>
             <h1 className="font-display text-lg font-semibold tracking-tight text-foreground">
-              Coller &amp; générer
+              Créer un document
             </h1>
           </div>
 
           <button
             type="button"
-            onClick={generate}
-            disabled={!canGenerate}
+            onClick={create}
+            disabled={!canCreate}
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? (
+            {creating ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                <span className="hidden sm:inline">Génération…</span>
+                <span>Création…</span>
               </>
             ) : (
               <>
                 <Sparkles className="size-4" />
-                <span>Générer</span>
+                <span>Créer</span>
               </>
             )}
           </button>
@@ -213,10 +185,10 @@ export default function NewDocPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-3xl"
+          className="w-full max-w-3xl space-y-7"
         >
           {/* Étape 1 : marque */}
-          <section className="mb-7">
+          <section>
             <div className="mb-3 flex items-end justify-between gap-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
@@ -264,10 +236,7 @@ export default function NewDocPage() {
                         {b.name}
                       </p>
                       <div className="mt-1 flex items-center gap-1.5">
-                        <span
-                          className="size-3 rounded-full"
-                          style={{ background: b.primary }}
-                        />
+                        <span className="size-3 rounded-full" style={{ background: b.primary }} />
                         <p
                           className={`text-[11px] ${selected ? 'text-white/70' : 'text-muted-foreground'}`}
                         >
@@ -286,16 +255,14 @@ export default function NewDocPage() {
             </div>
           </section>
 
-          {/* Étape 2 : type de document */}
-          <section className="mb-7">
-            <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                2. Type de document
-              </p>
-              <h2 className="mt-1 font-display text-base font-semibold text-foreground">
-                Tu rédiges quoi ?
-              </h2>
-            </div>
+          {/* Étape 2 : type */}
+          <section>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+              2. Type de document
+            </p>
+            <h2 className="mt-1 mb-3 font-display text-base font-semibold text-foreground">
+              Tu rédiges quoi ?
+            </h2>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {DOC_TYPES.map((t) => {
@@ -314,9 +281,7 @@ export default function NewDocPage() {
                     <p className="font-display text-sm font-semibold text-foreground">
                       {t.label}
                     </p>
-                    <p className="text-[12px] text-muted-foreground">
-                      {t.description}
-                    </p>
+                    <p className="text-[12px] text-muted-foreground">{t.description}</p>
                     {selected ? (
                       <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
                         <Check className="size-3" strokeWidth={3} />
@@ -328,17 +293,51 @@ export default function NewDocPage() {
             </div>
           </section>
 
-          {/* Étape 3 : contenu */}
-          {/* Étape 2.5 : logo client (optionnel) */}
-          <section className="mb-7">
-            <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                3. Logo du client (optionnel)
-              </p>
-              <h2 className="mt-1 font-display text-base font-semibold text-foreground">
-                Affiché à côté de ton logo dans le hero
-              </h2>
+          {/* Étape 3 : nom du client + objet */}
+          <section>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+              3. Informations
+            </p>
+            <h2 className="mt-1 mb-3 font-display text-base font-semibold text-foreground">
+              Pour qui ?
+            </h2>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-foreground">
+                  Nom du client *
+                </label>
+                <input
+                  type="text"
+                  value={client}
+                  onChange={(e) => setClient(e.target.value)}
+                  placeholder="Ex: Madame Maximin, Atelier Lumière, Shi Shi…"
+                  className="h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-foreground">
+                  Objet (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={baseline}
+                  onChange={(e) => setBaseline(e.target.value)}
+                  placeholder="Ex: Plateforme digitale de formation"
+                  className="h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+                />
+              </div>
             </div>
+          </section>
+
+          {/* Étape 4 : logo client (optionnel) */}
+          <section>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+              4. Logo du client (optionnel)
+            </p>
+            <h2 className="mt-1 mb-3 font-display text-base font-semibold text-foreground">
+              Affiché à côté de ton logo dans le hero
+            </h2>
 
             {clientLogoUrl ? (
               <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3">
@@ -348,14 +347,9 @@ export default function NewDocPage() {
                   alt="Logo client"
                   className="h-12 w-auto max-w-[180px] rounded object-contain"
                 />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    Logo prêt
-                  </p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    {clientLogoUrl}
-                  </p>
-                </div>
+                <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                  {clientLogoUrl}
+                </p>
                 <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-border/60 bg-background px-3 text-xs font-medium text-foreground/80 hover:bg-muted">
                   <Upload className="size-3.5" />
                   Changer
@@ -390,7 +384,7 @@ export default function NewDocPage() {
                 ) : (
                   <>
                     <ImagePlus className="size-4" />
-                    Ajouter le logo du client (PNG, JPG, SVG, WEBP)
+                    Ajouter le logo du client
                   </>
                 )}
                 <input
@@ -408,91 +402,31 @@ export default function NewDocPage() {
             )}
           </section>
 
-          <section className="mb-6">
-            <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                4. Contenu
-              </p>
-              <h2 className="mt-1 font-display text-base font-semibold text-foreground">
-                Colle tes notes / la conversation
-              </h2>
-            </div>
-
-            <div className="relative">
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                disabled={loading}
-                placeholder={PLACEHOLDER}
-                className="min-h-[55vh] w-full resize-y rounded-2xl border border-border/70 bg-background p-4 font-mono text-[13px] leading-[1.6] text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/15 disabled:opacity-60 sm:min-h-[420px] sm:p-5"
-              />
-              <div className="pointer-events-none absolute bottom-3 right-4 text-[11px] text-muted-foreground">
-                {charCount.toLocaleString('fr-FR')} caractères
-                {charCount > 0 && charCount < 30 ? ' · trop court' : ''}
-              </div>
-            </div>
-          </section>
-
-          {loading ? (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-xl border border-border/60 bg-card p-4"
-            >
-              <ul className="space-y-2.5 text-sm">
-                {STEPS.map((s, i) => (
-                  <li key={s} className="flex items-center gap-2.5">
-                    {i < stepIndex ? (
-                      <span className="grid size-4 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                        ✓
-                      </span>
-                    ) : i === stepIndex ? (
-                      <Loader2 className="size-4 animate-spin text-primary" />
-                    ) : (
-                      <span className="size-4 rounded-full border border-border" />
-                    )}
-                    <span
-                      className={
-                        i <= stepIndex ? 'text-foreground' : 'text-muted-foreground'
-                      }
-                    >
-                      {s}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ) : null}
-
           {error ? (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
-            >
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
               {error}
-            </motion.div>
+            </div>
           ) : null}
 
           <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-center text-xs text-muted-foreground sm:text-left">
-              IA : DeepSeek V4 Flash · ~5–10 secondes en moyenne
+              Le document sera créé avec un squelette. Tu rédiges et stylises ensuite dans l&apos;éditeur.
             </p>
             <button
               type="button"
-              onClick={generate}
-              disabled={!canGenerate}
+              onClick={create}
+              disabled={!canCreate}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? (
+              {creating ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Génération en cours…
+                  Création…
                 </>
               ) : (
                 <>
                   <Sparkles className="size-4" />
-                  Générer le document
+                  Créer le document
                 </>
               )}
             </button>
@@ -504,7 +438,7 @@ export default function NewDocPage() {
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         src={`/propositions/exemple?brand=${brand}`}
-        title={`Exemple — Template ${BRAND_LIST.find((b) => b.id === brand)?.name ?? ''}`}
+        title={`Exemple, template ${BRAND_LIST.find((b) => b.id === brand)?.name ?? ''}`}
       />
     </div>
   )

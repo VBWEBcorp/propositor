@@ -21,8 +21,10 @@ import {
   X,
 } from 'lucide-react'
 
+import { EditorToolbar } from '@/components/admin/editor-toolbar'
 import { InlineEditor } from '@/components/admin/inline-editor'
 import { PreviewModal } from '@/components/admin/preview-modal'
+import type { Editor } from '@tiptap/react'
 import { PropositionHero } from '@/components/proposition/proposition-hero'
 import { PropositionShell } from '@/components/proposition/proposition-shell'
 import { BRAND_LIST, DOC_TYPES } from '@/lib/brands'
@@ -45,6 +47,7 @@ export function PropositionEditor({
   const [moreOpen, setMoreOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
   const lastSavedJson = useRef(JSON.stringify(initial))
 
   const dirty = useMemo(
@@ -836,6 +839,9 @@ export function PropositionEditor({
         ) : null}
       </header>
 
+      {/* Toolbar editeur (style Word) */}
+      <EditorToolbar editor={editorInstance} />
+
       {/* La proposition rendue exactement comme côté client */}
       <main className="flex-1" id="proposition-printable">
         <PropositionShell
@@ -856,6 +862,7 @@ export function PropositionEditor({
             <InlineEditor
               initialMarkdown={data.content}
               onChange={(md) => update('content', md)}
+              onEditorReady={setEditorInstance}
             />
           </div>
         </PropositionShell>

@@ -42,13 +42,16 @@ export function htmlToMarkdown(html: string): string {
   return turndown.turndown(html)
 }
 
+import type { Editor } from '@tiptap/react'
+
 type Props = {
   initialMarkdown: string
   onChange: (markdown: string) => void
+  onEditorReady?: (editor: Editor) => void
   className?: string
 }
 
-export function InlineEditor({ initialMarkdown, onChange, className }: Props) {
+export function InlineEditor({ initialMarkdown, onChange, onEditorReady, className }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastEmittedRef = useRef<string>(initialMarkdown)
 
@@ -100,6 +103,11 @@ export function InlineEditor({ initialMarkdown, onChange, className }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialMarkdown])
+
+  // Expose l'instance editor au parent (pour brancher une toolbar)
+  useEffect(() => {
+    if (editor && onEditorReady) onEditorReady(editor)
+  }, [editor, onEditorReady])
 
   return <EditorContent editor={editor} className={className} />
 }
