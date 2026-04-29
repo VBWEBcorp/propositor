@@ -167,6 +167,7 @@ export function PropositionEditor({
     // Hoist hors du try pour pouvoir restaurer en cas d'erreur
     const tablePatchedEls: HTMLElement[] = []
     const previousInlineStyles = new Map<HTMLElement, string>()
+    const widthOverrides: Array<[HTMLElement, string]> = []
     try {
       const printable = document.getElementById('proposition-printable')
       if (!printable) {
@@ -197,11 +198,25 @@ export function PropositionEditor({
         await (document as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready
       }
 
+      // Force la largeur des conteneurs capturés à 1024px pour avoir un layout
+      // PDF stable et identique a l'aperçu desktop, peu importe la taille
+      // de la fenêtre du user (mobile, split-screen, etc.)
+      const FORCE_WIDTH = 1024
+      const forceW = (el: HTMLElement) => {
+        widthOverrides.push([el, el.style.width])
+        el.style.width = `${FORCE_WIDTH}px`
+        el.style.maxWidth = `${FORCE_WIDTH}px`
+      }
+      forceW(headerEl)
+      forceW(bodyEl)
+      forceW(footerEl)
+
       const captureOpts = {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
-        windowWidth: 1024,
+        windowWidth: FORCE_WIDTH,
+        width: FORCE_WIDTH,
         logging: false,
       } as const
 
@@ -455,7 +470,7 @@ export function PropositionEditor({
       const filename = `${safeClient}${safeNumber ? '_' + safeNumber : ''}.pdf`
       pdf.save(filename)
 
-      // Restaure les styles inline appliques aux tableaux
+      // Restaure les styles inline appliques aux tableaux + largeurs forcées
       tablePatchedEls.forEach((el) => {
         const previous = previousInlineStyles.get(el)
         if (previous) {
@@ -463,6 +478,10 @@ export function PropositionEditor({
         } else {
           el.removeAttribute('style')
         }
+      })
+      widthOverrides.forEach(([el, w]) => {
+        el.style.width = w
+        el.style.maxWidth = ''
       })
     } catch (e) {
       setErrorMsg(
@@ -476,6 +495,10 @@ export function PropositionEditor({
         } else {
           el.removeAttribute('style')
         }
+      })
+      widthOverrides.forEach(([el, w]) => {
+        el.style.width = w
+        el.style.maxWidth = ''
       })
     }
   }
