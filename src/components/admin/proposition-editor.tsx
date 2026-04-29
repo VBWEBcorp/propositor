@@ -210,7 +210,7 @@ export function PropositionEditor({
       // sur la 1ere ligne des tableaux + hide thead vide.
       const FORCE_WIDTH = 1024
       const captureOpts = {
-        scale: 2,
+        scale: 1.5, // 2 etait beaucoup trop lent (~2s/bloc), 1.5 reste tres lisible
         useCORS: true,
         backgroundColor: '#ffffff',
         windowWidth: FORCE_WIDTH,
