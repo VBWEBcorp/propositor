@@ -162,8 +162,19 @@ export function PropositionEditor({
   }
 
   async function downloadPdf() {
-    setSaveState('idle')
     setErrorMsg(null)
+
+    // 1) Si modifs en attente, on sauvegarde d'abord (sinon le PDF
+    // refleterait le state local mais pas ce qui sera dans la DB)
+    if (dirty) {
+      try {
+        await save(data)
+      } catch {
+        // On continue meme si le save echoue : au moins on aura le PDF du state actuel
+      }
+    }
+
+    setSaveState('idle')
     try {
       const printable = document.getElementById('proposition-printable')
       if (!printable) {
@@ -454,11 +465,31 @@ export function PropositionEditor({
         .replace(/^-+|-+$/g, '')
       const safeNumber = (data.number || '').replace(/[^a-z0-9-]+/gi, '')
       const filename = `${safeClient}${safeNumber ? '_' + safeNumber : ''}.pdf`
-      pdf.save(filename)
+
+      // Download via Blob explicite (plus fiable que pdf.save() qui peut etre
+      // bloque par certaines popup-blockers ou contextes navigateur).
+      const blob = pdf.output('blob') as Blob
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }, 1000)
     } catch (e) {
       setErrorMsg(
         e instanceof Error ? `Erreur PDF: ${e.message}` : 'Erreur PDF inconnue'
       )
+      // Force scroll vers le haut pour voir le message d'erreur (qui est sticky)
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      console.error('[PDF] Download error:', e)
     }
   }
 
