@@ -164,10 +164,6 @@ export function PropositionEditor({
   async function downloadPdf() {
     setSaveState('idle')
     setErrorMsg(null)
-    // Hoist hors du try pour pouvoir restaurer en cas d'erreur
-    const tablePatchedEls: HTMLElement[] = []
-    const previousInlineStyles = new Map<HTMLElement, string>()
-    const widthOverrides: Array<[HTMLElement, string]> = []
     try {
       const printable = document.getElementById('proposition-printable')
       if (!printable) {
@@ -198,26 +194,62 @@ export function PropositionEditor({
         await (document as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready
       }
 
-      // Force la largeur des conteneurs capturés à 1024px pour avoir un layout
-      // PDF stable et identique a l'aperçu desktop, peu importe la taille
-      // de la fenêtre du user (mobile, split-screen, etc.)
+      // captureOpts utilise onclone pour modifier le DOM clone par html2canvas
+      // (sans toucher au DOM visible). Force largeur 1024px + style header marine
+      // sur la 1ere ligne des tableaux + hide thead vide.
       const FORCE_WIDTH = 1024
-      const forceW = (el: HTMLElement) => {
-        widthOverrides.push([el, el.style.width])
-        el.style.width = `${FORCE_WIDTH}px`
-        el.style.maxWidth = `${FORCE_WIDTH}px`
-      }
-      forceW(headerEl)
-      forceW(bodyEl)
-      forceW(footerEl)
-
       const captureOpts = {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         windowWidth: FORCE_WIDTH,
-        width: FORCE_WIDTH,
         logging: false,
+        onclone: (clonedDoc: Document) => {
+          // Force largeur stable sur les 3 conteneurs
+          clonedDoc.querySelectorAll<HTMLElement>('[data-pdf]').forEach((el) => {
+            el.style.width = `${FORCE_WIDTH}px`
+            el.style.maxWidth = `${FORCE_WIDTH}px`
+          })
+          // Patch tableaux : 1ere ligne en marine + texte blanc
+          clonedDoc.querySelectorAll<HTMLTableElement>('table').forEach((table) => {
+            const firstRow =
+              table.querySelector(':scope > thead > tr') ||
+              table.querySelector(':scope > tbody > tr') ||
+              table.querySelector(':scope > tr')
+            if (firstRow) {
+              firstRow
+                .querySelectorAll<HTMLElement>(':scope > td, :scope > th')
+                .forEach((cell) => {
+                  cell.style.background = '#173656'
+                  cell.style.color = '#ffffff'
+                  cell.style.fontFamily =
+                    "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif"
+                  cell.style.fontWeight = '600'
+                  cell.style.fontSize = '11px'
+                  cell.style.textTransform = 'uppercase'
+                  cell.style.letterSpacing = '0.12em'
+                  cell.style.padding = '14px 20px'
+                  cell.style.textAlign = 'left'
+                  cell.style.borderTop = 'none'
+                  cell.querySelectorAll<HTMLElement>('*').forEach((child) => {
+                    child.style.color = 'inherit'
+                    child.style.background = 'transparent'
+                    child.style.margin = '0'
+                    child.style.fontSize = 'inherit'
+                    child.style.fontWeight = 'inherit'
+                    child.style.lineHeight = 'inherit'
+                    child.style.textTransform = 'inherit'
+                    child.style.letterSpacing = 'inherit'
+                  })
+                })
+            }
+            // Hide tout thead vide
+            const thead = table.querySelector('thead')
+            if (thead && !thead.textContent?.trim()) {
+              ;(thead as HTMLElement).style.display = 'none'
+            }
+          })
+        },
       } as const
 
       // 1. Capture du header (page 1 uniquement)
@@ -264,52 +296,6 @@ export function PropositionEditor({
       }
       // Hauteur max qu'un bloc peut occuper sur une page (pour pas deborder le footer)
       const maxBlockHeight = pageHeight - footerH - 14 - 6 // = ~245mm
-
-      // PATCH DOM JUSTE AVANT CAPTURE : force le style header marine sur la
-      // 1ere ligne de chaque tableau. C'est la seule facon fiable d'avoir
-      // 'Categorie / Recherches mensuelles' en blanc dans le bandeau marine,
-      // peu importe la structure (thead/tbody) que Tiptap genere.
-      bodyEl.querySelectorAll('table').forEach((table) => {
-        const firstRow =
-          table.querySelector(':scope > thead > tr') ||
-          table.querySelector(':scope > tbody > tr') ||
-          table.querySelector(':scope > tr')
-        if (!firstRow) return
-        firstRow.querySelectorAll<HTMLElement>(':scope > td, :scope > th').forEach((cell) => {
-          previousInlineStyles.set(cell, cell.getAttribute('style') ?? '')
-          cell.style.background = '#173656'
-          cell.style.color = '#ffffff'
-          cell.style.fontFamily = "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif"
-          cell.style.fontWeight = '600'
-          cell.style.fontSize = '11px'
-          cell.style.textTransform = 'uppercase'
-          cell.style.letterSpacing = '0.12em'
-          cell.style.padding = '14px 20px'
-          cell.style.textAlign = 'left'
-          cell.style.borderTop = 'none'
-          tablePatchedEls.push(cell)
-          // Force tous les enfants a heriter
-          cell.querySelectorAll<HTMLElement>('*').forEach((child) => {
-            previousInlineStyles.set(child, child.getAttribute('style') ?? '')
-            child.style.color = 'inherit'
-            child.style.background = 'transparent'
-            child.style.margin = '0'
-            child.style.fontSize = 'inherit'
-            child.style.fontWeight = 'inherit'
-            child.style.lineHeight = 'inherit'
-            child.style.textTransform = 'inherit'
-            child.style.letterSpacing = 'inherit'
-            tablePatchedEls.push(child)
-          })
-        })
-        // Hide tout thead vide qui pourrait subsister
-        const thead = table.querySelector('thead')
-        if (thead && thead.textContent?.trim() === '') {
-          previousInlineStyles.set(thead as HTMLElement, thead.getAttribute('style') ?? '')
-          ;(thead as HTMLElement).style.display = 'none'
-          tablePatchedEls.push(thead as HTMLElement)
-        }
-      })
 
       const blockData: BlockMeta[] = []
       for (const block of blocks) {
@@ -469,37 +455,10 @@ export function PropositionEditor({
       const safeNumber = (data.number || '').replace(/[^a-z0-9-]+/gi, '')
       const filename = `${safeClient}${safeNumber ? '_' + safeNumber : ''}.pdf`
       pdf.save(filename)
-
-      // Restaure les styles inline appliques aux tableaux + largeurs forcées
-      tablePatchedEls.forEach((el) => {
-        const previous = previousInlineStyles.get(el)
-        if (previous) {
-          el.setAttribute('style', previous)
-        } else {
-          el.removeAttribute('style')
-        }
-      })
-      widthOverrides.forEach(([el, w]) => {
-        el.style.width = w
-        el.style.maxWidth = ''
-      })
     } catch (e) {
       setErrorMsg(
         e instanceof Error ? `Erreur PDF: ${e.message}` : 'Erreur PDF inconnue'
       )
-      // Restaure aussi en cas d'erreur
-      tablePatchedEls.forEach((el) => {
-        const previous = previousInlineStyles.get(el)
-        if (previous) {
-          el.setAttribute('style', previous)
-        } else {
-          el.removeAttribute('style')
-        }
-      })
-      widthOverrides.forEach(([el, w]) => {
-        el.style.width = w
-        el.style.maxWidth = ''
-      })
     }
   }
 
