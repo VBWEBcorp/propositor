@@ -47,6 +47,7 @@ export function PropositionEditor({
   const [moreOpen, setMoreOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [pdfState, setPdfState] = useState<'idle' | 'generating'>('idle')
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
   const lastSavedJson = useRef(JSON.stringify(initial))
 
@@ -162,7 +163,12 @@ export function PropositionEditor({
   }
 
   async function downloadPdf() {
+    if (pdfState === 'generating') return // Anti double-clic
     setErrorMsg(null)
+    setPdfState('generating')
+
+    // Laisse React peindre le state "generating" avant de bloquer le main thread
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
 
     // 1) Si modifs en attente, on sauvegarde d'abord (sinon le PDF
     // refleterait le state local mais pas ce qui sera dans la DB)
@@ -494,6 +500,8 @@ export function PropositionEditor({
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
       console.error('[PDF] Download error:', e)
+    } finally {
+      setPdfState('idle')
     }
   }
 
@@ -568,11 +576,16 @@ export function PropositionEditor({
           <button
             type="button"
             onClick={downloadPdf}
-            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 text-xs font-medium text-foreground/80 transition-colors hover:bg-muted md:inline-flex"
+            disabled={pdfState === 'generating'}
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 text-xs font-medium text-foreground/80 transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex"
             title="Télécharger en PDF"
           >
-            <Download className="size-3.5" />
-            <span>PDF</span>
+            {pdfState === 'generating' ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Download className="size-3.5" />
+            )}
+            <span>{pdfState === 'generating' ? 'Génération…' : 'PDF'}</span>
           </button>
           <a
             href={`/propositions/${data.slug}`}
@@ -620,8 +633,14 @@ export function PropositionEditor({
                     downloadPdf()
                     setMoreOpen(false)
                   }}
-                  icon={<Download className="size-4" />}
-                  label="Télécharger le PDF"
+                  icon={
+                    pdfState === 'generating' ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Download className="size-4" />
+                    )
+                  }
+                  label={pdfState === 'generating' ? 'Génération…' : 'Télécharger le PDF'}
                 />
                 <a
                   href={`/propositions/${data.slug}`}
@@ -819,6 +838,13 @@ export function PropositionEditor({
                 )}
               </Field>
             </div>
+          </div>
+        ) : null}
+
+        {pdfState === 'generating' ? (
+          <div className="flex items-center gap-2 border-t border-primary/30 bg-primary/10 px-4 py-2 text-sm text-primary">
+            <Loader2 className="size-4 animate-spin" />
+            <span>Génération du PDF en cours… (5-30 s selon la longueur)</span>
           </div>
         ) : null}
 
