@@ -60,6 +60,9 @@ export function InlineEditor({ initialMarkdown, onChange, onEditorReady, classNa
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4] },
+        // Desactive le Link inclus dans StarterKit pour eviter le doublon
+        // avec notre Link.configure custom ci-dessous.
+        link: false,
       }),
       Link.configure({
         openOnClick: false,

@@ -199,10 +199,14 @@ export function PropositionEditor({
       const html2canvas = (await import('html2canvas-pro')).default
       const { default: jsPDF } = await import('jspdf')
 
-      // Attend que toutes les fonts soient chargees pour eviter
-      // que html2canvas-pro tombe sur un fallback serif
+      // Attend que les fonts soient chargees (max 2s, sinon on continue avec
+      // les fonts deja en cache - ne bloque pas la generation PDF)
       if (typeof document !== 'undefined' && (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts) {
-        await (document as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready
+        const fontsPromise = (document as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready
+        await Promise.race([
+          fontsPromise,
+          new Promise((resolve) => setTimeout(resolve, 2000)),
+        ])
       }
 
       // captureOpts utilise onclone pour modifier le DOM clone par html2canvas
@@ -210,7 +214,7 @@ export function PropositionEditor({
       // sur la 1ere ligne des tableaux + hide thead vide.
       const FORCE_WIDTH = 1024
       const captureOpts = {
-        scale: 1.5, // 2 etait beaucoup trop lent (~2s/bloc), 1.5 reste tres lisible
+        scale: 1, // 1 = lecture ecran standard (96 DPI), maximum de rapidite
         useCORS: true,
         backgroundColor: '#ffffff',
         windowWidth: FORCE_WIDTH,
